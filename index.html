@@ -69,8 +69,8 @@
   .top-actions{display:flex;gap:6px}
   .icon-btn{width:38px;height:34px;border:1px solid rgba(255,255,255,.17);border-radius:11px;background:rgba(255,255,255,.08);color:#ffe8bf;font-size:17px}
   .players-strip{display:flex;gap:9px;overflow-x:auto;scrollbar-width:none;padding:1px 0 4px}.players-strip::-webkit-scrollbar{display:none}
-  .player-chip{flex:0 0 auto;min-width:132px;max-width:172px;border:1px solid rgba(255,255,255,.16);background:#352018;border-radius:15px;padding:10px 11px 9px;color:#f8dfb7;position:relative;min-height:92px;text-align:left}
-  .player-chip.active{border-color:#f3c466;box-shadow:0 0 0 2px rgba(243,196,102,.18),0 0 18px rgba(243,196,102,.18)}
+  .player-chip{flex:0 0 auto;min-width:132px;max-width:172px;border:1px solid color-mix(in srgb,var(--player-accent,#c58a55) 48%,rgba(255,255,255,.14));background:linear-gradient(180deg,color-mix(in srgb,var(--player-accent,#c58a55) 12%,#352018),#352018 66%);border-radius:15px;padding:10px 11px 9px;color:#f8dfb7;position:relative;min-height:92px;text-align:left;box-shadow:inset 0 3px 0 color-mix(in srgb,var(--player-accent,#c58a55) 62%,transparent)}
+  .player-chip.active{border-color:#f3c466;box-shadow:inset 0 3px 0 var(--player-accent,#f3c466),0 0 0 2px rgba(243,196,102,.18),0 0 18px rgba(243,196,102,.18)}
   .player-chip.dead{filter:grayscale(1);opacity:.55}
   .player-chip .pname{font-weight:950;font-size:16px;line-height:1.05;max-width:142px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .player-chip .stats{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;font-weight:900;margin-top:7px;letter-spacing:.01em}
@@ -120,11 +120,32 @@
   .bot-thinking{display:flex;align-items:center;gap:7px;font-size:13px;color:#e0bf8c}.dots i{display:inline-block;width:5px;height:5px;border-radius:50%;background:currentColor;margin:0 2px;animation:dot 1.1s infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}@keyframes dot{0%,70%,100%{opacity:.25;transform:translateY(0)}35%{opacity:1;transform:translateY(-3px)}}
   .toast{position:fixed;z-index:90;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));top:auto;transform:translate(-50%,24px);width:calc(100% - 20px);max-width:820px;background:linear-gradient(90deg,rgba(22,10,7,.96),rgba(66,31,18,.97),rgba(22,10,7,.96));border:2px solid #d2a35d;color:#fff0cf;border-radius:16px;padding:16px 18px;text-align:center;font:950 clamp(23px,7vw,38px)/1.08 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.01em;box-shadow:0 16px 45px rgba(0,0,0,.62);opacity:0;pointer-events:none;transition:opacity .65s ease,transform .65s ease}.toast.show{opacity:1;transform:translate(-50%,0)}
   .toast.big{font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif;font-size:clamp(34px,10vw,52px);letter-spacing:.055em;padding-top:19px;padding-bottom:19px}
+  .toast.player-action{border-color:var(--toast-accent,#d2a35d);box-shadow:0 16px 45px rgba(0,0,0,.62),0 0 24px color-mix(in srgb,var(--toast-accent,#d2a35d) 32%,transparent)}
+
+  .combat-fx{position:fixed;z-index:85;inset:0;pointer-events:none;overflow:hidden;display:none}.combat-fx.show{display:block}
+  .shot-arrow,.storm-arrow{position:absolute;width:118px;height:7px;border-radius:999px;background:linear-gradient(90deg,#6e3c1f 0 74%,#e7c083 74% 81%,#6e3c1f 81% 100%);filter:drop-shadow(0 4px 3px rgba(0,0,0,.45));transform-origin:center;opacity:0}
+  .shot-arrow:before,.storm-arrow:before{content:"";position:absolute;right:-18px;top:50%;transform:translateY(-50%);border-left:24px solid #d8b06d;border-top:12px solid transparent;border-bottom:12px solid transparent}
+  .shot-arrow:after,.storm-arrow:after{content:"";position:absolute;left:-17px;top:50%;transform:translateY(-50%);width:24px;height:24px;background:linear-gradient(45deg,transparent 43%,#c89353 44% 56%,transparent 57%),linear-gradient(-45deg,transparent 43%,#c89353 44% 56%,transparent 57%)}
+  .shot-arrow.range1{left:-150px;top:54%;animation:shotAcross .82s cubic-bezier(.18,.78,.24,1) forwards}
+  .shot-arrow.range2{left:-160px;top:82%;animation:shotUp .98s cubic-bezier(.18,.78,.24,1) forwards}
+  .shot-arrow.from-right.range1{left:auto;right:-150px;transform:rotate(180deg);animation:shotAcrossBack .82s cubic-bezier(.18,.78,.24,1) forwards}
+  .shot-arrow.from-right.range2{left:auto;right:-160px;top:82%;transform:rotate(180deg);animation:shotUpBack .98s cubic-bezier(.18,.78,.24,1) forwards}
+  @keyframes shotAcross{0%{opacity:0;transform:translateX(0) rotate(0deg)}12%{opacity:1}82%{opacity:1}100%{opacity:0;transform:translateX(calc(100vw + 310px)) rotate(0deg)}}
+  @keyframes shotAcrossBack{0%{opacity:0;transform:translateX(0) rotate(180deg)}12%{opacity:1}82%{opacity:1}100%{opacity:0;transform:translateX(calc(-100vw - 310px)) rotate(180deg)}}
+  @keyframes shotUp{0%{opacity:0;transform:translate(0,0) rotate(-22deg)}12%{opacity:1}82%{opacity:1}100%{opacity:0;transform:translate(calc(100vw + 280px),-72vh) rotate(-22deg)}}
+  @keyframes shotUpBack{0%{opacity:0;transform:translate(0,0) rotate(202deg)}12%{opacity:1}82%{opacity:1}100%{opacity:0;transform:translate(calc(-100vw - 280px),-72vh) rotate(202deg)}}
+  .gatling-flash{position:absolute;left:50%;top:52%;width:46px;height:46px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff4c9 0 12%,#f4b34d 13% 31%,rgba(214,56,31,.8) 32% 48%,transparent 50%);animation:gatFlash .23s steps(2,end) 6}
+  .gatling-streak{position:absolute;left:50%;top:52%;width:62vw;max-width:520px;height:4px;background:linear-gradient(90deg,rgba(255,225,156,0),#ffd475 34%,#fff3c0 52%,#d9772a 78%,rgba(255,225,156,0));transform-origin:left center;opacity:0;animation:gatStreak .72s ease-out forwards}
+  @keyframes gatFlash{0%,100%{scale:.7;opacity:.35}50%{scale:1.45;opacity:1}}
+  @keyframes gatStreak{0%{opacity:0;scale:.15 1}18%{opacity:1}100%{opacity:0;scale:1 1}}
+  .table-stage.fx-shake{animation:tableShake .45s linear 2}@keyframes tableShake{0%,100%{transform:translate(0)}20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,-1px)}80%{transform:translate(3px,2px)}}
+  .storm-arrow{width:92px;height:6px;animation:stormFly var(--dur,1.25s) linear var(--delay,0s) forwards;transform:translate(var(--sx),var(--sy)) rotate(var(--rot));opacity:0}
+  @keyframes stormFly{0%{opacity:0;transform:translate(var(--sx),var(--sy)) rotate(var(--rot)) scale(.8)}10%{opacity:.95}86%{opacity:.95}100%{opacity:0;transform:translate(var(--ex),var(--ey)) rotate(var(--rot)) scale(1.05)}}
 
   .modal-backdrop{display:none;position:fixed;z-index:100;inset:0;background:rgba(8,4,3,.72);align-items:flex-end;justify-content:center;padding:12px}.modal-backdrop.show{display:flex}
   .modal{width:min(520px,100%);max-height:min(78dvh,700px);overflow:auto;background:linear-gradient(#edd09b,#d7a565);color:#2a1710;border:2px solid #8b5a2c;border-radius:23px;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,.55)}
   .modal h2{font-size:23px;margin-bottom:6px}.modal p{line-height:1.35}.choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}.choice-grid button{min-height:55px;border:1px solid #80522c;border-radius:14px;background:#fff0cf;color:#2a1710;font-weight:900;padding:9px}.choice-grid button small{display:block;font-weight:600;opacity:.7;margin-top:3px}.choice-grid .skip{grid-column:1/-1;background:#6c4a31;color:#ffeac8}.modal-actions{display:flex;gap:9px;margin-top:14px}.modal-actions button{flex:1}
-  .log-list{display:grid;gap:7px;font-size:13px}.log-item{padding:8px 10px;background:rgba(255,255,255,.21);border-radius:11px;border:1px solid rgba(80,40,16,.17)}
+  .log-list{display:grid;gap:8px;font-size:14px}.log-item{--log-accent:#8b5a2c;padding:10px 11px 10px 13px;background:linear-gradient(90deg,color-mix(in srgb,var(--log-accent) 18%,rgba(255,255,255,.24)),rgba(255,255,255,.16));border-radius:11px;border:1px solid color-mix(in srgb,var(--log-accent) 36%,rgba(80,40,16,.17));border-left:5px solid var(--log-accent);line-height:1.35}.log-item.system{--log-accent:#7d6047}
   .role-pill{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.07em;background:#593622;color:#ffe2b2}
   .role-pill.sheriff{background:#8b5b13}.role-pill.outlaw{background:#7d211f}.role-pill.deputy{background:#315d74}.role-pill.renegade{background:#4d4d4d}
   .gameover-title{font-family:Impact,sans-serif;font-size:44px;letter-spacing:.06em;color:#8e211d;text-align:center}
@@ -222,12 +243,14 @@
   <div id="infoContent"></div><div class="modal-actions"><button id="closeInfoBtn" class="secondary">CLOSE</button></div>
 </div></div>
 <div id="toast" class="toast"></div>
+<div id="combatFx" class="combat-fx" aria-hidden="true"></div>
 
 <script>
 (() => {
 'use strict';
 
 const BOT_NAMES = ['Vicki','Zella','Bram','Orla','Rook','Sable','Jory','Nixie','Calder','Fenn','Maris','Zev'];
+const PLAYER_TONES = ['#c97a3d','#a85d38','#d1a15f','#8f5f3f','#c48652','#9a704e','#d0b17b','#ad6f45'];
 const FACE_ORDER = ['arrow','dynamite','one','two','beer','gatling'];
 const FACE_LABEL = {arrow:'Arrow',dynamite:'Dynamite',one:'Bull\'s-eye 1',two:'Bull\'s-eye 2',beer:'Beer',gatling:'Gatling'};
 const FACE_SYMBOL = {arrow:'➶',dynamite:'◆',one:'①',two:'②',beer:'🍺',gatling:'✹'};
@@ -295,19 +318,70 @@ function charIs(p,name){ return p?.character?.name===name; }
 function roleClass(role){ return role.toLowerCase(); }
 function publicRole(p){ return state.playerCount===3 || p.role==='Sheriff' || !p.alive || p.revealedRole; }
 
-function log(msg){
+function playerTone(id){
+  if(!state||!id) return '#8b5a2c';
+  const i=state.players.findIndex(p=>p.id===id);
+  return PLAYER_TONES[(i<0?0:i)%PLAYER_TONES.length];
+}
+function inferActorId(msg){
+  if(!state) return null;
+  const hit=state.players.find(p=>String(msg).startsWith(p.name));
+  return hit?.id||null;
+}
+function log(msg,actorId=null,kind='action'){
   if(!state) return;
-  state.log.unshift(msg);
+  const actor=actorId||inferActorId(msg);
+  state.log.unshift({msg,actorId:actor,kind});
   state.log = state.log.slice(0,80);
 }
-async function announce(msg,big=false,ms=ACTION_MESSAGE_MS){
+async function announce(msg,big=false,ms=ACTION_MESSAGE_MS,actorId=null){
   clearTimeout(toastTimer);
   const t=$('toast');
   t.textContent=msg;
-  t.className='toast show'+(big?' big':'');
+  if(actorId) t.style.setProperty('--toast-accent',playerTone(actorId)); else t.style.removeProperty('--toast-accent');
+  t.className='toast show'+(big?' big':'')+(actorId?' player-action':'');
   await sleep(ms);
-  t.className='toast'+(big?' big':'');
+  t.className='toast'+(big?' big':'')+(actorId?' player-action':'');
   await sleep(MESSAGE_FADE_MS);
+}
+function fxLayer(){ return $('combatFx'); }
+function clearCombatFx(){ const fx=fxLayer(); fx.innerHTML=''; fx.classList.remove('show'); }
+async function playShotFx(attackerId,targetId,distance=1){
+  const fx=fxLayer(); fx.innerHTML=''; fx.classList.add('show');
+  const a=document.createElement('div');
+  a.className='shot-arrow '+(Number(distance)>=2?'range2':'range1');
+  const from=state.players.findIndex(p=>p.id===attackerId), to=state.players.findIndex(p=>p.id===targetId);
+  if(from>=0&&to>=0&&to<from) a.classList.add('from-right');
+  fx.appendChild(a);
+  await sleep(Number(distance)>=2?1050:900); clearCombatFx();
+}
+async function playGatlingFx(){
+  const fx=fxLayer(); fx.innerHTML=''; fx.classList.add('show');
+  const flash=document.createElement('div'); flash.className='gatling-flash'; fx.appendChild(flash);
+  for(let i=0;i<12;i++){
+    const s=document.createElement('div'); s.className='gatling-streak';
+    s.style.transform=`rotate(${i*30+cryptoInt(12)-6}deg)`; s.style.animationDelay=`${i*45}ms`; fx.appendChild(s);
+  }
+  document.querySelector('.table-stage')?.classList.add('fx-shake');
+  await sleep(1250); document.querySelector('.table-stage')?.classList.remove('fx-shake'); clearCombatFx();
+}
+async function playArrowStormFx(){
+  const fx=fxLayer(); fx.innerHTML=''; fx.classList.add('show');
+  const vw=Math.max(innerWidth,360), vh=Math.max(innerHeight,640);
+  const total=24;
+  for(let i=0;i<total;i++){
+    const a=document.createElement('div'); a.className='storm-arrow';
+    const edge=cryptoInt(4); let sx,sy,ex,ey;
+    if(edge===0){ sx=-150; sy=cryptoInt(vh); ex=vw+180; ey=cryptoInt(vh); }
+    else if(edge===1){ sx=vw+150; sy=cryptoInt(vh); ex=-180; ey=cryptoInt(vh); }
+    else if(edge===2){ sx=cryptoInt(vw); sy=-150; ex=cryptoInt(vw); ey=vh+180; }
+    else { sx=cryptoInt(vw); sy=vh+150; ex=cryptoInt(vw); ey=-180; }
+    const rot=Math.atan2(ey-sy,ex-sx)*180/Math.PI;
+    a.style.setProperty('--sx',`${sx}px`); a.style.setProperty('--sy',`${sy}px`); a.style.setProperty('--ex',`${ex}px`); a.style.setProperty('--ey',`${ey}px`); a.style.setProperty('--rot',`${rot}deg`);
+    a.style.setProperty('--delay',`${(cryptoInt(650))/1000}s`); a.style.setProperty('--dur',`${1.0+(cryptoInt(65)/100)}s`); fx.appendChild(a);
+  }
+  document.querySelector('.table-stage')?.classList.add('fx-shake');
+  await sleep(2200); document.querySelector('.table-stage')?.classList.remove('fx-shake'); clearCombatFx();
 }
 
 $('createBtn').addEventListener('click',()=>{
@@ -405,7 +479,7 @@ function renderGame(){
   $('arrowPool').innerHTML=`<div class="pool-number">${state.arrowPool}</div><div class="pool-label"><span>ARROWS</span><span>LEFT</span></div>`;
   const strip=$('playersStrip'); strip.innerHTML='';
   state.players.forEach(pl=>{
-    const chip=document.createElement('button'); chip.className='player-chip'+(pl.id===p.id?' active':'')+(!pl.alive?' dead':''); chip.type='button';
+    const chip=document.createElement('button'); chip.className='player-chip'+(pl.id===p.id?' active':'')+(!pl.alive?' dead':''); chip.type='button'; chip.style.setProperty('--player-accent',playerTone(pl.id));
     const dist=distanceFromHuman(pl.id);
     const distText=pl.id==='human'?'YOU':(!pl.alive?'OUT':`DISTANCE ${dist}`);
     chip.innerHTML=`${pl.role==='Sheriff'?'<span class="sheriff-star">★</span>':''}<div class="pname">${escapeHtml(pl.name)}${pl.isBot?' · BOT':''}</div><div class="stats">♥ ${Math.max(0,pl.hp)}/${pl.maxHp} &nbsp;&nbsp; ➶ ${pl.arrows}</div><div class="distance">${distText}</div><div class="char">${escapeHtml(pl.character.name)}${publicRole(pl)?' · '+escapeHtml(pl.role):''}</div>`;
@@ -492,12 +566,13 @@ function countFace(face){ return state.dice.filter(f=>f===face).length; }
 async function giveArrow(playerId){
   const p=getPlayer(playerId); if(!p?.alive) return;
   if(state.arrowPool<=0) await resolveIndianAttack();
-  p.arrows++; state.arrowPool--; log(`${p.name} took an arrow.`); renderGame();
-  await announce(`${p.name} takes an arrow ➶`,false,ACTION_MESSAGE_MS);
+  p.arrows++; state.arrowPool--; log(`${p.name} takes an arrow.`,p.id,'arrow'); renderGame();
+  await announce(`${p.name} takes an arrow ➶`,false,ACTION_MESSAGE_MS,p.id);
   if(state.arrowPool===0) await resolveIndianAttack();
 }
 async function resolveIndianAttack(){
-  await announce('ARROW ATTACK!',true,MAJOR_MESSAGE_MS); log('The arrow pool emptied. Everyone takes damage for their arrows.');
+  log('ARROW ATTACK — the pool emptied and everyone resolves their arrows.',null,'system');
+  await Promise.all([playArrowStormFx(),announce('ARROW ATTACK!',true,MAJOR_MESSAGE_MS)]);
   const losses=state.players.filter(p=>p.alive).map(p=>({id:p.id,amount:charIs(p,'Jourdonnais')?Math.min(1,p.arrows):p.arrows}));
   state.players.forEach(p=>p.arrows=0); state.arrowPool=9; renderGame();
   for(const x of losses){ if(x.amount>0) await loseLife(x.id,x.amount,{type:'indians',attackerId:null}); }
@@ -522,9 +597,9 @@ async function resolveTurn(fromDynamite=false){
     const candidates=legalTargets(p.id,shot.face,snapshot);
     if(!candidates.length) continue;
     let targetId;
-    if(p.isBot){ targetId=botChooseAttackTarget(p,candidates,shot.face); await botPause(`${p.name} lines up a ${FACE_LABEL[shot.face]}.`); }
+    if(p.isBot){ targetId=botChooseAttackTarget(p,candidates,shot.face); await botPause(); }
     else targetId=await choosePlayer(`${FACE_LABEL[shot.face]}`,'Choose a legal target.',candidates,false);
-    if(targetId) selected.push({targetId,damage:shot.damage});
+    if(targetId) selected.push({targetId,damage:shot.damage,face:shot.face,distance:tableDistance(p.id,targetId,snapshot)});
   }
   if(charIs(p,'Slab the Killer') && beers>0 && selected.length && !state.slabUsedThisTurn){
     let chosenIndex=-1;
@@ -537,10 +612,12 @@ async function resolveTurn(fromDynamite=false){
     if(chosenIndex>=0){ selected[chosenIndex].damage=2; beers--; state.slabUsedThisTurn=true; log(`${p.name} used Slab the Killer's ability.`); }
   }
 
-  const damageMap={}; selected.forEach(s=>damageMap[s.targetId]=(damageMap[s.targetId]||0)+s.damage);
-  for(const [targetId,amount] of Object.entries(damageMap)){
-    await loseLife(targetId,amount,{type:'shot',attackerId:p.id,deferWin:true});
-    updateSuspicionFromAttack(p.id,targetId,amount);
+  for(const shot of selected){
+    const target=getPlayer(shot.targetId);
+    if(!target?.alive) continue;
+    await playShotFx(p.id,shot.targetId,shot.distance);
+    await loseLife(shot.targetId,shot.damage,{type:'shot',attackerId:p.id,distance:shot.distance,deferWin:true});
+    updateSuspicionFromAttack(p.id,shot.targetId,shot.damage);
   }
   await checkWin(); if(state.gameOver){ state.resolving=false; return; }
 
@@ -549,7 +626,7 @@ async function resolveTurn(fromDynamite=false){
     const candidates=alivePlayers().map(x=>x.id);
     if(!candidates.length) break;
     let targetId;
-    if(p.isBot){ targetId=botChooseBeerTarget(p,candidates); await botPause(`${p.name} decides who gets the Beer.`); }
+    if(p.isBot){ targetId=botChooseBeerTarget(p,candidates); await botPause(); }
     else targetId=await choosePlayer('Beer','Choose a player to heal.',candidates,false);
     if(targetId){
       const t=getPlayer(targetId); const before=t.hp; let heal=1;
@@ -577,7 +654,8 @@ async function resolveTurn(fromDynamite=false){
   const gatlingNeed=charIs(p,'Willy the Kid')?2:3;
   if(gatlings>=gatlingNeed && !state.gatlingActivatedThisTurn){
     state.gatlingActivatedThisTurn=true;
-    await announce('GATLING!',true,MAJOR_MESSAGE_MS); log(`${p.name} activated the Gatling.`);
+    log(`${p.name} fires the Gatling at everyone else.`,p.id,'gatling');
+    await Promise.all([playGatlingFx(),announce(`${p.name} FIRES THE GATLING!`,true,MAJOR_MESSAGE_MS,p.id)]);
     p.arrows=0; recalcArrowPool();
     const targets=alivePlayers().filter(x=>x.id!==p.id).map(x=>x.id);
     for(const id of targets){ await loseLife(id,1,{type:'gatling',attackerId:p.id,deferWin:true}); }
@@ -594,26 +672,41 @@ async function resolveTurn(fromDynamite=false){
 
 async function loseLife(playerId,amount,ctx){
   const p=getPlayer(playerId); if(!p?.alive||amount<=0) return;
-  let actualLost=0;
+  let actualLost=0, fell=false, substituted=0;
   for(let i=0;i<amount;i++){
-    if(!p.alive) break;
+    if(!p.alive||p.hp<=0) break;
     if(charIs(p,'Paul Regret') && ctx.type==='gatling') continue;
     if(charIs(p,'Bart Cassidy') && (ctx.type==='shot'||ctx.type==='gatling') && state.arrowPool>1){
       let use;
       if(p.isBot) use=(p.hp<=3 || state.arrowPool>=5);
       else use=await askYesNo('Bart Cassidy',`Take an arrow instead of losing 1 life? (${state.arrowPool} arrows remain in the pool.)`);
-      if(use){ await giveArrow(p.id); continue; }
+      if(use){ substituted++; await giveArrow(p.id); continue; }
     }
     p.hp--; actualLost++;
     if(charIs(p,'Pedro Ramirez') && p.arrows>0 && ctx.type!=='indians'){
       let use=p.isBot ? true : await askYesNo('Pedro Ramirez','Discard one of your arrows after losing this life point?');
-      if(use && p.arrows>0){ p.arrows--; state.arrowPool++; log(`${p.name} discarded an arrow with Pedro Ramirez's ability.`); }
+      if(use && p.arrows>0){ p.arrows--; state.arrowPool++; log(`${p.name} discarded an arrow with Pedro Ramirez's ability.`,p.id,'ability'); }
     }
-    if(p.hp<=0){ await eliminatePlayer(p.id,ctx.attackerId,!!ctx.deferWin); break; }
+    if(p.hp<=0){ fell=true; break; }
   }
-  if(actualLost>0){ log(`${p.name} lost ${actualLost} life${actualLost===1?'':' points'}.`); await announce(`${p.name} −${actualLost} ♥`,false,ACTION_MESSAGE_MS); }
+  const attacker=ctx.attackerId?getPlayer(ctx.attackerId):null;
+  if(actualLost>0){
+    const lifeWord=actualLost===1?'life':'life points';
+    let msg,actorId=attacker?.id||p.id;
+    if(ctx.type==='shot' && attacker) msg=`${attacker.name} shoots ${p.name} — ${p.name} loses ${actualLost} ${lifeWord}.`;
+    else if(ctx.type==='gatling' && attacker) msg=`${attacker.name}'s Gatling hits ${p.name} — ${p.name} loses ${actualLost} ${lifeWord}.`;
+    else if(ctx.type==='indians'){ msg=`Arrow attack hits ${p.name} — ${p.name} loses ${actualLost} ${lifeWord}.`; actorId=null; }
+    else if(ctx.type==='dynamite'){ msg=`${p.name}'s dynamite explodes — ${p.name} loses ${actualLost} ${lifeWord}.`; actorId=p.id; }
+    else msg=`${p.name} loses ${actualLost} ${lifeWord}.`;
+    log(msg,actorId,ctx.type||'action');
+    await announce(msg,false,ACTION_MESSAGE_MS,actorId);
+  } else if(substituted>0 && attacker){
+    const msg=`${attacker.name} attacks ${p.name}, but ${p.name} takes an arrow instead of losing life.`;
+    log(msg,attacker.id,ctx.type||'action');
+  }
+  if(fell) await eliminatePlayer(p.id,ctx.attackerId,!!ctx.deferWin);
   if(actualLost>0 && ctx.attackerId && charIs(p,'El Gringo') && p.alive && (ctx.type==='shot'||ctx.type==='gatling')){
-    const attacker=getPlayer(ctx.attackerId); if(attacker?.alive){ log(`${attacker.name} must take an arrow because of El Gringo.`); await giveArrow(attacker.id); }
+    const attacker=getPlayer(ctx.attackerId); if(attacker?.alive){ log(`${attacker.name} must take an arrow because of El Gringo.`,attacker.id,'ability'); await giveArrow(attacker.id); }
   }
   renderGame();
 }
@@ -622,10 +715,11 @@ async function eliminatePlayer(playerId,killerId,deferWin=false){
   const p=getPlayer(playerId); if(!p.alive) return;
   p.alive=false; p.hp=0; p.revealedRole=true;
   state.arrowPool+=p.arrows; p.arrows=0; state.arrowPool=Math.min(9,state.arrowPool);
-  log(`${p.name} was eliminated. Role revealed: ${p.role}.`); await announce(`${p.name} is out!`,true,MAJOR_MESSAGE_MS);
+  const killer=getPlayer(killerId);
+  const elimMsg=killer?`${killer.name} eliminates ${p.name}. ${p.name}'s role is revealed: ${p.role}.`:`${p.name} is eliminated. Role revealed: ${p.role}.`;
+  log(elimMsg,killer?.id||p.id,'elimination'); await announce(`${p.name} is out!`,true,MAJOR_MESSAGE_MS,killer?.id||p.id);
   for(const v of state.players){ if(v.alive && v.id!==p.id && charIs(v,'Vulture Sam')){ const before=v.hp; v.hp=Math.min(v.maxHp,v.hp+2); if(v.hp>before) log(`${v.name} gained ${v.hp-before} life from Vulture Sam.`); } }
   if(state.playerCount===3){
-    const killer=getPlayer(killerId);
     const target={Deputy:'Renegade',Renegade:'Outlaw',Outlaw:'Deputy'};
     if(killer?.alive && target[killer.role]===p.role){ await endGame([killer.id],`${killer.name} personally eliminated the ${p.role}.`); return; }
     state.threePlayerSuddenDeath=true;
@@ -671,7 +765,7 @@ async function startTurn(){
   state.maxRolls=charIs(p,'Lucky Duke')?4:3; renderGame();
   if(charIs(p,'Sid Ketchum')){
     const candidates=alivePlayers().map(x=>x.id); let targetId;
-    if(p.isBot){ targetId=botChooseBeerTarget(p,candidates); await botPause(`${p.name} uses Sid Ketchum's ability.`); }
+    if(p.isBot){ targetId=botChooseBeerTarget(p,candidates); await botPause(); }
     else targetId=await choosePlayer('Sid Ketchum','At the start of your turn, heal one alive player by 1.',candidates,false);
     if(targetId){ const t=getPlayer(targetId); const before=t.hp; t.hp=Math.min(t.maxHp,t.hp+1); if(t.hp>before) log(`${p.name} healed ${t.name} by 1 at the start of the turn.`); renderGame(); }
   }
@@ -683,7 +777,7 @@ async function botTurn(p){
   while(p.alive && !state.gameOver && state.rollsMade<state.maxRolls){
     const indices=state.rollsMade===0?[0,1,2,3,4]:[0,1,2,3,4].filter(i=>!state.held[i]&&!state.locked[i]);
     if(!indices.length) break;
-    await botPause(`${p.name} rolls.`); await performRoll(indices);
+    await botPause(); await performRoll(indices);
     if(state.gameOver||!p.alive||state.resolving||currentPlayer().id!==p.id) return;
     if(state.rollsMade>=state.maxRolls) return; // performRoll resolves final automatically
     botChooseHolds(p); renderGame();
@@ -692,7 +786,7 @@ async function botTurn(p){
   }
   if(!state.resolving && !state.gameOver && p.alive && currentPlayer().id===p.id) await resolveTurn();
 }
-async function botPause(message){
+async function botPause(){
   $('botThinking').style.display='flex';
   const p=currentPlayer();
   $('botThinking').firstChild.textContent=(p?.isBot?`${p.name} is thinking…`:'Thinking…')+' ';
@@ -710,7 +804,6 @@ function botChooseHolds(p){
     else if(f==='gatling') keep=botLikesGatling(p,gat);
     state.held[i]=keep;
   });
-  log(`${p.name} keeps ${state.dice.filter((f,i)=>state.held[i]||state.locked[i]).map(f=>FACE_LABEL[f]).join(', ')||'nothing'}.`);
 }
 function botHappyWithRoll(p){
   const useful=state.dice.reduce((n,f,i)=>n+((state.held[i]||state.locked[i])?1:0),0);
@@ -886,7 +979,12 @@ function showPlayerInfo(id){
 $('closeInfoBtn').addEventListener('click',()=>$('infoBackdrop').classList.remove('show'));
 $('myCardBtn').addEventListener('click',()=>showPlayerInfo('human'));
 $('logBtn').addEventListener('click',()=>{
-  $('infoContent').innerHTML=`<h2>Game Log</h2><div class="log-list">${(state.log.length?state.log:['No actions yet.']).map(x=>`<div class="log-item">${escapeHtml(x)}</div>`).join('')}</div>`;
+  const items=state.log.length?state.log:[{msg:'No actions yet.',actorId:null,kind:'system'}];
+  $('infoContent').innerHTML=`<h2>Game Log</h2><div class="log-list">${items.map(x=>{
+    const entry=typeof x==='string'?{msg:x,actorId:inferActorId(x),kind:'action'}:x;
+    const tone=entry.actorId?playerTone(entry.actorId):'#7d6047';
+    return `<div class="log-item ${entry.actorId?'':'system'}" style="--log-accent:${tone}">${escapeHtml(entry.msg)}</div>`;
+  }).join('')}</div>`;
   $('infoBackdrop').classList.add('show');
 });
 
