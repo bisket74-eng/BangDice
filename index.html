@@ -1,0 +1,867 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#24140f" />
+<title>BANG! Dice — Local Bot Edition</title>
+<style>
+  :root{
+    --ink:#2a1710;
+    --paper:#f1d7a4;
+    --paper2:#d9aa6a;
+    --wood1:#3a2016;
+    --wood2:#1d100c;
+    --red:#a62e27;
+    --red2:#6f1d1a;
+    --gold:#e2b85c;
+    --cream:#fff0cf;
+    --green:#466a4a;
+    --shadow:0 16px 40px rgba(0,0,0,.38);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%;background:#180e0b;color:var(--cream);font-family:Georgia,"Times New Roman",serif}
+  body{min-height:100dvh;overflow-x:hidden}
+  button,input,select{font:inherit}
+  button{touch-action:manipulation}
+  .screen{display:none;min-height:100dvh}
+  .screen.active{display:flex}
+  #setupScreen,#lobbyScreen,#revealScreen,#gameOverScreen{align-items:center;justify-content:center;padding:20px;background:
+    radial-gradient(circle at 50% 10%,rgba(255,190,84,.13),transparent 38%),
+    linear-gradient(160deg,#321b12,#130b08 64%,#25140e)}
+  .paper-card{width:min(560px,100%);background:
+    linear-gradient(rgba(255,255,255,.06),rgba(255,255,255,.03)),
+    repeating-linear-gradient(0deg,rgba(80,43,20,.035) 0 1px,transparent 1px 4px),
+    linear-gradient(145deg,#efd29a,#d7a565);color:var(--ink);border:2px solid #8a5a2b;border-radius:24px;padding:22px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .paper-card:before,.paper-card:after{content:"";position:absolute;width:90px;height:90px;border:2px solid rgba(94,45,18,.28);border-radius:50%;pointer-events:none}
+  .paper-card:before{left:-45px;top:-45px}.paper-card:after{right:-45px;bottom:-45px}
+  h1,h2,h3,p{margin-top:0}
+  .brand{font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif;letter-spacing:.045em;text-align:center;color:#b62620;text-shadow:2px 2px 0 #35150d,4px 4px 0 rgba(255,255,255,.25);font-size:clamp(46px,14vw,78px);line-height:.88;margin:8px 0 4px}
+  .subtitle{text-align:center;text-transform:uppercase;letter-spacing:.18em;font-weight:900;margin-bottom:20px;font-size:13px}
+  .badge{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(54,28,12,.35);background:rgba(255,255,255,.22);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700}
+  .center{text-align:center}
+  label{display:block;font-weight:900;margin:14px 0 6px}
+  input,select{width:100%;border:2px solid #7f512b;background:#fff6df;color:#24140e;border-radius:14px;padding:13px 14px;font-size:18px;outline:none}
+  input:focus,select:focus{border-color:#a62e27;box-shadow:0 0 0 3px rgba(166,46,39,.15)}
+  .primary,.secondary,.danger,.ghost-btn{border:0;border-radius:16px;padding:14px 18px;font-weight:950;letter-spacing:.04em;cursor:pointer}
+  .primary{width:100%;color:#fff5df;background:linear-gradient(#b83a30,#781f1b);box-shadow:0 7px 0 #4e1715,0 11px 20px rgba(0,0,0,.22);font-size:18px;margin-top:18px}
+  .primary:active{transform:translateY(4px);box-shadow:0 3px 0 #4e1715}
+  .secondary{background:#5f432c;color:#fff2d6;border:1px solid #8a6747}
+  .ghost-btn{background:rgba(255,255,255,.1);color:inherit;border:1px solid rgba(255,255,255,.2)}
+  .danger{background:#7c211e;color:white}
+  .small{font-size:12px;opacity:.8}
+  .hint{background:rgba(255,255,255,.23);border:1px solid rgba(86,44,18,.25);padding:10px 12px;border-radius:13px;font-size:13px;line-height:1.35;margin-top:14px}
+  .lobby-list{display:grid;gap:9px;margin:18px 0}
+  .seat-row{display:flex;align-items:center;justify-content:space-between;padding:12px 13px;border:1px solid rgba(70,36,16,.25);border-radius:14px;background:rgba(255,255,255,.19);font-weight:800}
+  .seat-row .seat-num{width:27px;height:27px;display:grid;place-items:center;border-radius:50%;background:#6f4122;color:#ffeac7;margin-right:10px}
+  .seat-left{display:flex;align-items:center}
+  .bot-on-start{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#704327}
+  .reveal-role{font-family:Impact,sans-serif;font-size:42px;letter-spacing:.06em;color:#801f1b;text-align:center;margin:18px 0 8px}
+  .character-panel{border:2px solid rgba(88,47,22,.35);border-radius:18px;padding:15px;margin:15px 0;background:rgba(255,255,255,.22)}
+  .character-panel strong{font-size:21px}
+  .role-cover{height:150px;border-radius:18px;display:grid;place-items:center;text-align:center;background:linear-gradient(145deg,#3a1a12,#120907);color:#f7d59c;border:2px solid #7e4a29;font-weight:950;cursor:pointer;margin:14px 0;box-shadow:inset 0 0 0 5px rgba(255,255,255,.03)}
+
+  /* GAME */
+  #gameScreen{flex-direction:column;background:#130b08;min-height:100dvh;overflow:hidden}
+  .game-top{position:relative;z-index:30;background:linear-gradient(#2e1a12,#1b0f0b);border-bottom:1px solid rgba(255,220,170,.17);padding:calc(8px + env(safe-area-inset-top)) 10px 8px;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+  .turnline{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+  .turn-title{font-family:Impact,sans-serif;letter-spacing:.06em;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .top-actions{display:flex;gap:6px}
+  .icon-btn{width:38px;height:34px;border:1px solid rgba(255,255,255,.17);border-radius:11px;background:rgba(255,255,255,.08);color:#ffe8bf;font-size:17px}
+  .players-strip{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.players-strip::-webkit-scrollbar{display:none}
+  .player-chip{flex:0 0 auto;min-width:112px;max-width:145px;border:1px solid rgba(255,255,255,.16);background:#352018;border-radius:13px;padding:7px 9px;color:#f8dfb7;position:relative}
+  .player-chip.active{border-color:#f3c466;box-shadow:0 0 0 2px rgba(243,196,102,.18),0 0 18px rgba(243,196,102,.18)}
+  .player-chip.dead{filter:grayscale(1);opacity:.55}
+  .player-chip .pname{font-weight:950;font-size:13px;max-width:112px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .player-chip .stats{font-size:12px;margin-top:3px}.player-chip .char{font-size:10px;opacity:.7;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sheriff-star{position:absolute;right:5px;top:4px;font-size:15px}
+
+  .table-stage{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;background:
+    radial-gradient(ellipse at 50% 40%,rgba(201,132,63,.20),transparent 52%),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0 2px,transparent 2px 78px),
+    linear-gradient(90deg,#24140f,#3d2418 35%,#2c1912 65%,#1d100c)}
+  .table-stage:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(7deg,transparent 0 22px,rgba(0,0,0,.06) 23px 24px)}
+  .turn-banner{position:relative;z-index:4;text-align:center;padding:10px 12px 0}
+  .turn-banner .name{font-family:Impact,sans-serif;letter-spacing:.08em;font-size:clamp(24px,7vw,34px);text-transform:uppercase;text-shadow:0 3px 10px #000}
+  .turn-banner .sub{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#dfba82;margin-top:3px}
+  .arrow-pool{display:inline-flex;gap:6px;align-items:center;background:rgba(15,7,5,.42);border:1px solid rgba(255,233,198,.14);border-radius:999px;padding:5px 9px;margin-top:7px;font-size:12px}
+  .dice-area{position:relative;z-index:5;flex:1;min-height:260px;display:flex;align-items:center;justify-content:center;padding:10px 8px}
+  .dice-row{width:min(650px,100%);display:flex;justify-content:center;align-items:center;gap:clamp(7px,2.5vw,16px);perspective:900px;min-height:170px}
+  .die-wrap{width:clamp(57px,16vw,92px);height:clamp(57px,16vw,92px);position:relative;transition:transform .18s ease,filter .18s ease;cursor:pointer;user-select:none}
+  .die-wrap.held{transform:translateY(-13px);filter:drop-shadow(0 0 10px rgba(255,204,88,.72))}
+  .die-wrap.held:after{content:"HELD";position:absolute;left:50%;top:calc(100% + 7px);transform:translateX(-50%);font:900 10px/1 system-ui,sans-serif;letter-spacing:.12em;color:#ffd06a;background:#4d2b15;border:1px solid #d4a646;border-radius:999px;padding:4px 6px}
+  .die-wrap.locked{filter:drop-shadow(0 0 10px rgba(220,63,43,.72))}
+  .die-wrap.locked:after{content:"LOCKED";position:absolute;left:50%;top:calc(100% + 7px);transform:translateX(-50%);font:900 9px/1 system-ui,sans-serif;letter-spacing:.09em;color:#ffc3a8;background:#501c17;border:1px solid #a94739;border-radius:999px;padding:4px 6px}
+  .die{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.16,.78,.19,1)}
+  .die.rolling{animation:dieFlight .68s cubic-bezier(.2,.8,.2,1)}
+  @keyframes dieFlight{
+    0%{translate:0 0;scale:1}
+    18%{translate:var(--flyx1) -55px;scale:1.07}
+    45%{translate:var(--flyx2) 18px;scale:.96}
+    72%{translate:var(--flyx3) -18px;scale:1.03}
+    100%{translate:0 0;scale:1}
+  }
+  .face{position:absolute;inset:0;border-radius:15%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(145deg,#fff8e7,#e4ceb0);border:2px solid #bfa17a;color:#26150e;box-shadow:inset 0 0 11px rgba(87,52,25,.20);backface-visibility:hidden}
+  .face .sym{font-family:Arial,sans-serif;font-weight:1000;font-size:clamp(25px,8vw,47px);line-height:.9}.face .tiny{font:900 clamp(6px,1.8vw,9px)/1 Arial,sans-serif;letter-spacing:.05em;margin-top:4px}
+  .face.front{transform:rotateY(0deg) translateZ(var(--z))}.face.back{transform:rotateY(180deg) translateZ(var(--z))}.face.right{transform:rotateY(90deg) translateZ(var(--z))}.face.left{transform:rotateY(-90deg) translateZ(var(--z))}.face.top{transform:rotateX(90deg) translateZ(var(--z))}.face.bottom{transform:rotateX(-90deg) translateZ(var(--z))}
+  .sym.arrow{color:#2c6798}.sym.dynamite{color:#b42a21}.sym.beer{color:#d07711}.sym.gatling{color:#1f7b55}.sym.target{color:#333}
+  .controls{position:relative;z-index:8;padding:10px 14px calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:8px;background:linear-gradient(transparent,rgba(10,5,4,.48) 25%,rgba(10,5,4,.78))}
+  .roll-btn{width:min(460px,100%);min-height:62px;border:2px solid #f0c46b;border-radius:19px;background:linear-gradient(#b8342b,#741e1a);color:#fff1d6;font-family:Impact,sans-serif;font-size:24px;letter-spacing:.08em;box-shadow:0 7px 0 #48110f,0 14px 22px rgba(0,0,0,.32);cursor:pointer}
+  .roll-btn:active:not(:disabled){transform:translateY(4px);box-shadow:0 3px 0 #48110f}
+  .roll-btn:disabled{opacity:.48;cursor:default}
+  .resolve-btn{border:0;background:transparent;color:#e4c294;text-decoration:underline;text-underline-offset:4px;font-weight:800;padding:4px 12px}
+  .tap-hint{font-size:11px;color:#d6b98f;text-align:center;min-height:14px}
+  .bot-thinking{display:flex;align-items:center;gap:7px;font-size:13px;color:#e0bf8c}.dots i{display:inline-block;width:5px;height:5px;border-radius:50%;background:currentColor;margin:0 2px;animation:dot 1.1s infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}@keyframes dot{0%,70%,100%{opacity:.25;transform:translateY(0)}35%{opacity:1;transform:translateY(-3px)}}
+  .toast{position:fixed;z-index:90;left:50%;top:50%;transform:translate(-50%,-50%) scale(.94);max-width:min(430px,86vw);background:rgba(22,10,7,.92);border:2px solid #c58b49;color:#ffe5ba;border-radius:18px;padding:14px 18px;text-align:center;font-weight:900;box-shadow:0 20px 50px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  .toast.big{font-family:Impact,sans-serif;font-size:28px;letter-spacing:.06em}
+
+  .modal-backdrop{display:none;position:fixed;z-index:100;inset:0;background:rgba(8,4,3,.72);align-items:flex-end;justify-content:center;padding:12px}.modal-backdrop.show{display:flex}
+  .modal{width:min(520px,100%);max-height:min(78dvh,700px);overflow:auto;background:linear-gradient(#edd09b,#d7a565);color:#2a1710;border:2px solid #8b5a2c;border-radius:23px;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,.55)}
+  .modal h2{font-size:23px;margin-bottom:6px}.modal p{line-height:1.35}.choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}.choice-grid button{min-height:55px;border:1px solid #80522c;border-radius:14px;background:#fff0cf;color:#2a1710;font-weight:900;padding:9px}.choice-grid button small{display:block;font-weight:600;opacity:.7;margin-top:3px}.choice-grid .skip{grid-column:1/-1;background:#6c4a31;color:#ffeac8}.modal-actions{display:flex;gap:9px;margin-top:14px}.modal-actions button{flex:1}
+  .log-list{display:grid;gap:7px;font-size:13px}.log-item{padding:8px 10px;background:rgba(255,255,255,.21);border-radius:11px;border:1px solid rgba(80,40,16,.17)}
+  .role-pill{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.07em;background:#593622;color:#ffe2b2}
+  .role-pill.sheriff{background:#8b5b13}.role-pill.outlaw{background:#7d211f}.role-pill.deputy{background:#315d74}.role-pill.renegade{background:#4d4d4d}
+  .gameover-title{font-family:Impact,sans-serif;font-size:44px;letter-spacing:.06em;color:#8e211d;text-align:center}
+  .winners{font-size:20px;font-weight:900;text-align:center;margin:10px 0 20px}
+  .credits{font-size:10px;text-align:center;opacity:.6;margin-top:12px}
+  @media (min-width:700px){.dice-area{min-height:360px}.table-stage{min-height:0}.game-top{padding-left:18px;padding-right:18px}}
+  @media (prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
+</style>
+</head>
+<body>
+
+<section id="setupScreen" class="screen active">
+  <div class="paper-card">
+    <div class="center"><span class="badge">LOCAL BOT EDITION • NO SUPABASE YET</span></div>
+    <div class="brand">BANG!</div>
+    <div class="subtitle">Dice Table</div>
+    <label for="humanName">Your name</label>
+    <input id="humanName" maxlength="18" autocomplete="off" placeholder="Enter your name" />
+    <label for="playerCount">Total players</label>
+    <select id="playerCount">
+      <option value="3">3 players</option><option value="4">4 players</option><option value="5" selected>5 players</option><option value="6">6 players</option><option value="7">7 players</option><option value="8">8 players</option>
+    </select>
+    <button id="createBtn" class="primary">CREATE GAME</button>
+    <div class="hint">For now, you are the only human. When you start, every empty seat is filled automatically with smart bots. The first bot is always <b>Vicki</b>.</div>
+  </div>
+</section>
+
+<section id="lobbyScreen" class="screen">
+  <div class="paper-card">
+    <div class="center"><span class="badge">LOCAL ROOM • FUTURE MULTIPLAYER READY</span></div>
+    <h2 class="center" style="margin:14px 0 4px">Table Lobby</h2>
+    <p id="lobbyCaption" class="center small"></p>
+    <div id="lobbyList" class="lobby-list"></div>
+    <button id="startBtn" class="primary">START GAME</button>
+    <button id="backSetupBtn" class="secondary" style="width:100%;margin-top:12px">BACK</button>
+  </div>
+</section>
+
+<section id="revealScreen" class="screen">
+  <div class="paper-card">
+    <div class="center"><span class="badge">PRIVATE • YOUR INFORMATION</span></div>
+    <h2 class="center" style="margin:14px 0 4px">Your Role & Character</h2>
+    <div id="roleCover" class="role-cover">TAP TO REVEAL YOUR ROLE</div>
+    <div id="roleReveal" style="display:none">
+      <div id="humanRole" class="reveal-role"></div>
+      <p id="roleGoal" class="center"></p>
+    </div>
+    <div id="humanCharacter" class="character-panel"></div>
+    <button id="enterTableBtn" class="primary" disabled>ENTER THE TABLE</button>
+  </div>
+</section>
+
+<section id="gameScreen" class="screen">
+  <header class="game-top">
+    <div class="turnline">
+      <div id="topTurnTitle" class="turn-title">TURN</div>
+      <div class="top-actions">
+        <button id="myCardBtn" class="icon-btn" title="My role and character">★</button>
+        <button id="logBtn" class="icon-btn" title="Game log">☰</button>
+      </div>
+    </div>
+    <div id="playersStrip" class="players-strip"></div>
+  </header>
+  <main class="table-stage">
+    <div class="turn-banner">
+      <div id="turnName" class="name"></div>
+      <div id="rollStatus" class="sub"></div>
+      <div id="arrowPool" class="arrow-pool"></div>
+    </div>
+    <div class="dice-area">
+      <div id="diceRow" class="dice-row"></div>
+    </div>
+    <div class="controls">
+      <div id="botThinking" class="bot-thinking" style="display:none">Thinking <span class="dots"><i></i><i></i><i></i></span></div>
+      <button id="rollBtn" class="roll-btn">ROLL DICE</button>
+      <button id="resolveBtn" class="resolve-btn" style="display:none">USE THESE DICE</button>
+      <div id="tapHint" class="tap-hint"></div>
+    </div>
+  </main>
+</section>
+
+<section id="gameOverScreen" class="screen">
+  <div class="paper-card">
+    <div class="gameover-title">GAME OVER</div>
+    <div id="winnerText" class="winners"></div>
+    <div id="finalRoles"></div>
+    <button id="newGameBtn" class="primary">NEW GAME</button>
+  </div>
+</section>
+
+<div id="choiceBackdrop" class="modal-backdrop"><div class="modal">
+  <h2 id="choiceTitle"></h2><p id="choiceText"></p><div id="choiceGrid" class="choice-grid"></div>
+</div></div>
+<div id="infoBackdrop" class="modal-backdrop"><div class="modal">
+  <div id="infoContent"></div><div class="modal-actions"><button id="closeInfoBtn" class="secondary">CLOSE</button></div>
+</div></div>
+<div id="toast" class="toast"></div>
+
+<script>
+(() => {
+'use strict';
+
+const BOT_NAMES = ['Vicki','Zella','Bram','Orla','Rook','Sable','Jory','Nixie','Calder','Fenn','Maris','Zev'];
+const FACE_ORDER = ['arrow','dynamite','one','two','beer','gatling'];
+const FACE_LABEL = {arrow:'Arrow',dynamite:'Dynamite',one:'Bull\'s-eye 1',two:'Bull\'s-eye 2',beer:'Beer',gatling:'Gatling'};
+const FACE_SYMBOL = {arrow:'➶',dynamite:'◆',one:'①',two:'②',beer:'🍺',gatling:'✹'};
+const ROTATION = {
+  arrow:'rotateX(0deg) rotateY(0deg)',
+  dynamite:'rotateX(0deg) rotateY(-90deg)',
+  one:'rotateX(0deg) rotateY(180deg)',
+  two:'rotateX(0deg) rotateY(90deg)',
+  beer:'rotateX(-90deg) rotateY(0deg)',
+  gatling:'rotateX(90deg) rotateY(0deg)'
+};
+const ROLES_BY_COUNT = {
+  4:['Sheriff','Renegade','Outlaw','Outlaw'],
+  5:['Sheriff','Renegade','Outlaw','Outlaw','Deputy'],
+  6:['Sheriff','Renegade','Outlaw','Outlaw','Outlaw','Deputy'],
+  7:['Sheriff','Renegade','Outlaw','Outlaw','Outlaw','Deputy','Deputy'],
+  8:['Sheriff','Renegade','Renegade','Outlaw','Outlaw','Outlaw','Deputy','Deputy']
+};
+const ROLE_GOALS = {
+  Sheriff:'Eliminate all Outlaws and Renegades.',
+  Deputy:'Protect the Sheriff and help eliminate the Outlaws and Renegades.',
+  Outlaw:'Eliminate the Sheriff.',
+  Renegade:'Be the last character alive.'
+};
+const CHARACTERS = [
+  {name:'Bart Cassidy',life:8,desc:'When a player hurts you with a shot or Gatling, you may take an arrow instead of one lost life (but not the last arrow in the pool).'},
+  {name:'Black Jack',life:8,desc:'You may reroll Dynamite unless you have three or more Dynamites showing.'},
+  {name:'Calamity Janet',life:8,desc:'Bull’s-eye 1 and Bull’s-eye 2 can be used as either range.'},
+  {name:'El Gringo',life:7,desc:'A player who makes you lose life with an attack must take an arrow.'},
+  {name:'Jesse Jones',life:9,desc:'At 4 life or less, each Beer you use on yourself heals 2 instead of 1.'},
+  {name:'Jourdonnais',life:7,desc:'An arrow attack can make you lose at most 1 life.'},
+  {name:'Kit Carlson',life:7,desc:'For every Gatling result, you may remove one arrow from any player.'},
+  {name:'Lucky Duke',life:8,desc:'You get one extra reroll, for up to four total rolls.'},
+  {name:'Paul Regret',life:9,desc:'You do not lose life from a Gatling attack.'},
+  {name:'Pedro Ramirez',life:8,desc:'Whenever you lose life, you may discard one of your arrows for each life lost.'},
+  {name:'Rose Doolan',life:9,desc:'Your Bull’s-eye ranges reach one seat farther.'},
+  {name:'Sid Ketchum',life:8,desc:'At the start of your turn, choose an alive player to heal 1.'},
+  {name:'Slab the Killer',life:8,desc:'Once per turn, you may spend one Beer result to make one Bull’s-eye deal 2 damage.'},
+  {name:'Suzy Lafayette',life:8,desc:'If your final dice have no Bull’s-eye 1 or 2, heal 2 at the end of your turn.'},
+  {name:'Vulture Sam',life:9,desc:'Whenever another player is eliminated, heal 2.'},
+  {name:'Willy the Kid',life:8,desc:'Only two Gatling results are needed to activate the Gatling attack.'}
+];
+
+let state = null;
+let pendingChoiceResolve = null;
+let animating = false;
+let toastTimer = null;
+
+const $ = id => document.getElementById(id);
+const screens = ['setupScreen','lobbyScreen','revealScreen','gameScreen','gameOverScreen'];
+function showScreen(id){ screens.forEach(s => $(s).classList.toggle('active',s===id)); }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+function cryptoInt(max){ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0] % max; }
+function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=cryptoInt(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function randFace(){ return FACE_ORDER[cryptoInt(6)]; }
+function currentPlayer(){ return state.players[state.turnIndex]; }
+function alivePlayers(){ return state.players.filter(p=>p.alive); }
+function getPlayer(id){ return state.players.find(p=>p.id===id); }
+function charIs(p,name){ return p?.character?.name===name; }
+function roleClass(role){ return role.toLowerCase(); }
+function publicRole(p){ return state.playerCount===3 || p.role==='Sheriff' || !p.alive || p.revealedRole; }
+
+function log(msg){
+  if(!state) return;
+  state.log.unshift(msg);
+  state.log = state.log.slice(0,80);
+}
+function toast(msg,big=false,ms=1200){
+  clearTimeout(toastTimer); const t=$('toast'); t.textContent=msg; t.className='toast show'+(big?' big':'');
+  toastTimer=setTimeout(()=>t.className='toast',ms);
+}
+
+$('createBtn').addEventListener('click',()=>{
+  const name=$('humanName').value.trim();
+  if(!name){ $('humanName').focus(); $('humanName').style.borderColor='#b72721'; return; }
+  $('humanName').style.borderColor='';
+  const count=Number($('playerCount').value);
+  state={
+    playerCount:count,
+    hostName:name,
+    players:[{id:'human',name,isBot:false}],
+    arrowPool:9,
+    turnIndex:0,
+    dice:['arrow','dynamite','one','two','beer'],
+    held:[false,false,false,false,false],
+    locked:[false,false,false,false,false],
+    rollsMade:0,
+    maxRolls:3,
+    resolving:false,
+    log:[],
+    suspicion:{},
+    gameOver:false,
+    winners:[],
+    threePlayerSuddenDeath:false,
+    gatlingActivatedThisTurn:false,
+    slabUsedThisTurn:false
+  };
+  renderLobby(); showScreen('lobbyScreen');
+});
+$('backSetupBtn').addEventListener('click',()=>showScreen('setupScreen'));
+
+function renderLobby(){
+  $('lobbyCaption').textContent=`${state.playerCount}-player game • ${state.playerCount-1} empty seat${state.playerCount-1===1?'':'s'} will become bots when you start.`;
+  const box=$('lobbyList'); box.innerHTML='';
+  for(let i=0;i<state.playerCount;i++){
+    const row=document.createElement('div'); row.className='seat-row';
+    const occupied=i===0;
+    row.innerHTML=`<div class="seat-left"><span class="seat-num">${i+1}</span><span>${occupied?escapeHtml(state.hostName):'Open seat'}</span></div><span class="bot-on-start">${occupied?'HOST':'BOT ON START'}</span>`;
+    box.appendChild(row);
+  }
+}
+
+$('startBtn').addEventListener('click',()=>setupGame());
+function setupGame(){
+  while(state.players.length<state.playerCount){
+    const botIndex=state.players.filter(p=>p.isBot).length;
+    state.players.push({id:'bot'+botIndex,name:BOT_NAMES[botIndex]||`Bot ${botIndex+1}`,isBot:true});
+  }
+  let roles;
+  if(state.playerCount===3){ roles=shuffle(['Deputy','Outlaw','Renegade']); }
+  else roles=shuffle(ROLES_BY_COUNT[state.playerCount]);
+  const chars=shuffle(CHARACTERS).slice(0,state.playerCount);
+  state.players.forEach((p,i)=>{
+    p.role=roles[i]; p.character=chars[i]; p.baseMax=chars[i].life;
+    p.maxHp=chars[i].life+(p.role==='Sheriff'?2:0); p.hp=p.maxHp; p.arrows=0; p.alive=true; p.revealedRole=(state.playerCount===3 || p.role==='Sheriff');
+    state.suspicion[p.id]=0;
+  });
+  if(state.playerCount===3){
+    state.turnIndex=state.players.findIndex(p=>p.role==='Deputy');
+  } else {
+    state.turnIndex=state.players.findIndex(p=>p.role==='Sheriff');
+  }
+  const me=getPlayer('human');
+  $('roleCover').style.display='grid'; $('roleReveal').style.display='none'; $('enterTableBtn').disabled=true;
+  $('humanRole').textContent=me.role.toUpperCase();
+  $('roleGoal').textContent=state.playerCount===3 ? threePlayerGoal(me.role) : ROLE_GOALS[me.role];
+  $('humanCharacter').innerHTML=`<strong>${escapeHtml(me.character.name)}</strong> <span class="small">(${me.baseMax} life${me.role==='Sheriff'?' + 2 Sheriff bonus':''})</span><p style="margin:8px 0 0">${escapeHtml(me.character.desc)}</p>`;
+  showScreen('revealScreen');
+}
+function threePlayerGoal(role){ return role==='Deputy'?'Eliminate the Renegade yourself.':role==='Renegade'?'Eliminate the Outlaw yourself.':'Eliminate the Deputy yourself.'; }
+$('roleCover').addEventListener('click',()=>{ $('roleCover').style.display='none'; $('roleReveal').style.display='block'; $('enterTableBtn').disabled=false; });
+$('enterTableBtn').addEventListener('click',async()=>{ showScreen('gameScreen'); renderGame(); await sleep(350); startTurn(); });
+
+function buildDie(index){
+  const wrap=document.createElement('div'); wrap.className='die-wrap'; wrap.dataset.index=index;
+  wrap.innerHTML=`<div class="die" style="--z:clamp(28.5px,8vw,46px)">
+    ${faceHtml('front','arrow','➶','ARROW')}
+    ${faceHtml('right','dynamite','◆','DYNAMITE')}
+    ${faceHtml('back','one','①','RANGE 1')}
+    ${faceHtml('left','two','②','RANGE 2')}
+    ${faceHtml('top','beer','🍺','BEER')}
+    ${faceHtml('bottom','gatling','✹','GATLING')}
+  </div>`;
+  wrap.addEventListener('click',()=>toggleHold(index));
+  return wrap;
+}
+function faceHtml(pos,type,sym,label){ return `<div class="face ${pos}"><div class="sym ${type==='one'||type==='two'?'target':type}">${sym}</div><div class="tiny">${label}</div></div>`; }
+function ensureDice(){ if(!$('diceRow').children.length){ for(let i=0;i<5;i++) $('diceRow').appendChild(buildDie(i)); } }
+
+function renderGame(){
+  ensureDice(); const p=currentPlayer();
+  $('topTurnTitle').textContent=`${p.name}'s turn`;
+  $('turnName').textContent=p.name;
+  $('rollStatus').textContent=state.rollsMade===0 ? (p.isBot?'Bot preparing to roll':'Your turn') : `Roll ${state.rollsMade} of ${state.maxRolls}`;
+  $('arrowPool').innerHTML=`<span>➶</span><b>${state.arrowPool}</b> arrows left in the pool`;
+  const strip=$('playersStrip'); strip.innerHTML='';
+  state.players.forEach(pl=>{
+    const chip=document.createElement('button'); chip.className='player-chip'+(pl.id===p.id?' active':'')+(!pl.alive?' dead':''); chip.type='button';
+    chip.innerHTML=`${pl.role==='Sheriff'?'<span class="sheriff-star">★</span>':''}<div class="pname">${escapeHtml(pl.name)}${pl.isBot?' · BOT':''}</div><div class="stats">♥ ${Math.max(0,pl.hp)}/${pl.maxHp} &nbsp; ➶ ${pl.arrows}</div><div class="char">${escapeHtml(pl.character.name)}${publicRole(pl)?' · '+escapeHtml(pl.role):''}</div>`;
+    chip.addEventListener('click',()=>showPlayerInfo(pl.id)); strip.appendChild(chip);
+  });
+  for(let i=0;i<5;i++){
+    const wrap=$('diceRow').children[i]; wrap.classList.toggle('held',!!state.held[i]&&!state.locked[i]); wrap.classList.toggle('locked',!!state.locked[i]);
+    const die=wrap.querySelector('.die'); die.style.transform=ROTATION[state.dice[i]];
+  }
+  const humanTurn=!p.isBot && p.alive && !state.gameOver;
+  $('rollBtn').style.display=humanTurn?'block':'none';
+  $('botThinking').style.display=p.isBot?'flex':'none';
+  if(humanTurn){
+    $('rollBtn').disabled=animating||state.resolving;
+    $('rollBtn').textContent=state.rollsMade===0?'ROLL DICE':'ROLL AGAIN';
+    $('resolveBtn').style.display=(state.rollsMade>0 && state.rollsMade<state.maxRolls && !state.resolving)?'block':'none';
+    $('tapHint').textContent=state.rollsMade>0?'Tap dice to hold or release them. Dynamite locks automatically.':'';
+  } else {
+    $('resolveBtn').style.display='none'; $('tapHint').textContent=p.isBot?'Watch the bot choose what to keep.':'';
+  }
+}
+
+function toggleHold(i){
+  if(animating||state.resolving) return;
+  const p=currentPlayer(); if(p.isBot||state.rollsMade===0||state.rollsMade>=state.maxRolls) return;
+  if(state.locked[i]) return;
+  state.held[i]=!state.held[i]; renderGame();
+}
+$('rollBtn').addEventListener('click',async()=>{
+  if(animating||state.resolving) return;
+  const p=currentPlayer(); if(p.isBot) return;
+  const indices=state.rollsMade===0?[0,1,2,3,4]:[0,1,2,3,4].filter(i=>!state.held[i]&&!state.locked[i]);
+  if(!indices.length){ await resolveTurn(); return; }
+  await performRoll(indices);
+});
+$('resolveBtn').addEventListener('click',()=>resolveTurn());
+
+async function performRoll(indices){
+  const p=currentPlayer(); if(!p?.alive||state.gameOver) return;
+  animating=true; state.rollsMade++;
+  const rolledFaces=[];
+  indices.forEach(i=>{ state.dice[i]=randFace(); state.held[i]=false; rolledFaces.push([i,state.dice[i]]); });
+  renderGame(); animateDice(indices);
+  await sleep(760);
+  indices.forEach(i=>$('diceRow').children[i].querySelector('.die').classList.remove('rolling'));
+  animating=false;
+  // Arrow faces take effect immediately after every roll.
+  for(const [i,face] of rolledFaces){
+    if(face==='arrow'){
+      await giveArrow(p.id);
+      if(state.gameOver || !p.alive) return;
+    }
+  }
+  updateDynamiteLocks(); renderGame();
+  if(state.gameOver || !p.alive) return;
+  const dyn=countFace('dynamite');
+  if(dyn>=3){
+    toast('THREE DYNAMITES!',true,1100); await sleep(900); await resolveTurn(true); return;
+  }
+  if(state.rollsMade>=state.maxRolls){ await sleep(550); await resolveTurn(false); return; }
+  if(p.isBot) return;
+  renderGame();
+}
+function animateDice(indices){
+  indices.forEach((i,n)=>{
+    const wrap=$('diceRow').children[i], die=wrap.querySelector('.die');
+    const dir=(i%2?1:-1), mag=30+cryptoInt(65);
+    die.style.setProperty('--flyx1',`${dir*mag}px`); die.style.setProperty('--flyx2',`${-dir*(20+cryptoInt(60))}px`); die.style.setProperty('--flyx3',`${dir*(10+cryptoInt(35))}px`);
+    die.classList.remove('rolling'); void die.offsetWidth; die.classList.add('rolling');
+    const extraX=360*(2+cryptoInt(3)), extraY=360*(2+cryptoInt(3));
+    die.style.transform=`${ROTATION[state.dice[i]]} rotateX(${extraX}deg) rotateY(${extraY}deg)`;
+    setTimeout(()=>{ die.style.transform=ROTATION[state.dice[i]]; },50+n*18);
+  });
+}
+function updateDynamiteLocks(){
+  const p=currentPlayer(); const dyn=countFace('dynamite');
+  for(let i=0;i<5;i++){
+    if(state.dice[i]==='dynamite') state.locked[i]=!(charIs(p,'Black Jack') && dyn<3);
+    else state.locked[i]=false;
+  }
+}
+function countFace(face){ return state.dice.filter(f=>f===face).length; }
+
+async function giveArrow(playerId){
+  const p=getPlayer(playerId); if(!p?.alive) return;
+  if(state.arrowPool<=0) await resolveIndianAttack();
+  p.arrows++; state.arrowPool--; log(`${p.name} took an arrow.`); renderGame();
+  toast(`${p.name} takes an arrow ➶`,false,650);
+  await sleep(300);
+  if(state.arrowPool===0) await resolveIndianAttack();
+}
+async function resolveIndianAttack(){
+  toast('ARROW ATTACK!',true,1300); log('The arrow pool emptied. Everyone takes damage for their arrows.'); await sleep(900);
+  const losses=state.players.filter(p=>p.alive).map(p=>({id:p.id,amount:charIs(p,'Jourdonnais')?Math.min(1,p.arrows):p.arrows}));
+  state.players.forEach(p=>p.arrows=0); state.arrowPool=9; renderGame();
+  for(const x of losses){ if(x.amount>0) await loseLife(x.id,x.amount,{type:'indians',attackerId:null}); }
+  await checkWin(); renderGame();
+}
+
+async function resolveTurn(fromDynamite=false){
+  if(state.resolving||state.gameOver) return;
+  state.resolving=true; const p=currentPlayer();
+  $('resolveBtn').style.display='none'; $('rollBtn').disabled=true;
+  const dyn=countFace('dynamite');
+  if(dyn>=3){ await loseLife(p.id,1,{type:'dynamite',attackerId:null}); if(state.gameOver||!p.alive){ state.resolving=false; await checkWin(); if(!state.gameOver) nextTurn(); return; } }
+
+  // Shots are chosen from the same pre-damage seating arrangement, then damage is applied together.
+  let shots=[];
+  state.dice.forEach((f,i)=>{ if(f==='one'||f==='two') shots.push({face:f,die:i,damage:1}); });
+  let beers=countFace('beer');
+
+  const snapshot=alivePlayers().map(x=>x.id);
+  const selected=[];
+  for(const shot of shots){
+    const candidates=legalTargets(p.id,shot.face,snapshot);
+    if(!candidates.length) continue;
+    let targetId;
+    if(p.isBot){ targetId=botChooseAttackTarget(p,candidates,shot.face); await botPause(`${p.name} lines up a ${FACE_LABEL[shot.face]}.`); }
+    else targetId=await choosePlayer(`${FACE_LABEL[shot.face]}`,'Choose a legal target.',candidates,false);
+    if(targetId) selected.push({targetId,damage:shot.damage});
+  }
+  if(charIs(p,'Slab the Killer') && beers>0 && selected.length && !state.slabUsedThisTurn){
+    let chosenIndex=-1;
+    if(p.isBot){
+      chosenIndex=botChooseSlabShot(p,selected);
+    } else {
+      const use=await askYesNo('Slab the Killer','Spend one Beer result to make one of your chosen Bull’s-eye attacks deal 2 damage?');
+      if(use) chosenIndex=await chooseShotToDouble(selected);
+    }
+    if(chosenIndex>=0){ selected[chosenIndex].damage=2; beers--; state.slabUsedThisTurn=true; log(`${p.name} used Slab the Killer's ability.`); }
+  }
+
+  const damageMap={}; selected.forEach(s=>damageMap[s.targetId]=(damageMap[s.targetId]||0)+s.damage);
+  for(const [targetId,amount] of Object.entries(damageMap)){
+    await loseLife(targetId,amount,{type:'shot',attackerId:p.id,deferWin:true});
+    updateSuspicionFromAttack(p.id,targetId,amount);
+  }
+  await checkWin(); if(state.gameOver){ state.resolving=false; return; }
+
+  // Beer is after shots.
+  for(let b=0;b<beers;b++){
+    const candidates=alivePlayers().map(x=>x.id);
+    if(!candidates.length) break;
+    let targetId;
+    if(p.isBot){ targetId=botChooseBeerTarget(p,candidates); await botPause(`${p.name} decides who gets the Beer.`); }
+    else targetId=await choosePlayer('Beer','Choose a player to heal.',candidates,false);
+    if(targetId){
+      const t=getPlayer(targetId); const before=t.hp; let heal=1;
+      if(charIs(p,'Jesse Jones') && targetId===p.id && p.hp<=4) heal=2;
+      t.hp=clamp(t.hp+heal,0,t.maxHp);
+      const gained=t.hp-before; log(`${p.name} gave Beer to ${t.name}${gained?` (+${gained} life)`:' (already at maximum)'}.`);
+      if(targetId===state.players.find(x=>x.role==='Sheriff')?.id && gained>0) state.suspicion[p.id]-=2;
+      renderGame();
+    }
+  }
+
+  // Kit Carlson may remove one arrow for each Gatling result.
+  const gatlings=countFace('gatling');
+  if(charIs(p,'Kit Carlson') && gatlings>0){
+    for(let g=0;g<gatlings;g++){
+      const candidates=alivePlayers().filter(x=>x.arrows>0).map(x=>x.id);
+      if(!candidates.length) break;
+      let targetId;
+      if(p.isBot) targetId=botChooseArrowRemoval(p,candidates);
+      else targetId=await choosePlayer('Kit Carlson','Remove one arrow from a player, or skip.',candidates,true);
+      if(targetId){ const t=getPlayer(targetId); t.arrows--; state.arrowPool++; log(`${p.name} removed one of ${t.name}'s arrows.`); renderGame(); }
+    }
+  }
+
+  const gatlingNeed=charIs(p,'Willy the Kid')?2:3;
+  if(gatlings>=gatlingNeed && !state.gatlingActivatedThisTurn){
+    state.gatlingActivatedThisTurn=true;
+    toast('GATLING!',true,900); log(`${p.name} activated the Gatling.`); await sleep(650);
+    p.arrows=0; recalcArrowPool();
+    const targets=alivePlayers().filter(x=>x.id!==p.id).map(x=>x.id);
+    for(const id of targets){ await loseLife(id,1,{type:'gatling',attackerId:p.id,deferWin:true}); }
+    await checkWin(); if(state.gameOver){ state.resolving=false; return; }
+  }
+
+  if(charIs(p,'Suzy Lafayette') && !state.dice.some(f=>f==='one'||f==='two') && p.alive){
+    const before=p.hp; p.hp=Math.min(p.maxHp,p.hp+2); if(p.hp>before) log(`${p.name} healed ${p.hp-before} with Suzy Lafayette's ability.`);
+  }
+
+  state.resolving=false; renderGame();
+  await checkWin(); if(!state.gameOver){ await sleep(700); nextTurn(); }
+}
+
+async function loseLife(playerId,amount,ctx){
+  const p=getPlayer(playerId); if(!p?.alive||amount<=0) return;
+  let actualLost=0;
+  for(let i=0;i<amount;i++){
+    if(!p.alive) break;
+    if(charIs(p,'Paul Regret') && ctx.type==='gatling') continue;
+    if(charIs(p,'Bart Cassidy') && (ctx.type==='shot'||ctx.type==='gatling') && state.arrowPool>1){
+      let use;
+      if(p.isBot) use=(p.hp<=3 || state.arrowPool>=5);
+      else use=await askYesNo('Bart Cassidy',`Take an arrow instead of losing 1 life? (${state.arrowPool} arrows remain in the pool.)`);
+      if(use){ await giveArrow(p.id); continue; }
+    }
+    p.hp--; actualLost++;
+    if(charIs(p,'Pedro Ramirez') && p.arrows>0 && ctx.type!=='indians'){
+      let use=p.isBot ? true : await askYesNo('Pedro Ramirez','Discard one of your arrows after losing this life point?');
+      if(use && p.arrows>0){ p.arrows--; state.arrowPool++; log(`${p.name} discarded an arrow with Pedro Ramirez's ability.`); }
+    }
+    if(p.hp<=0){ await eliminatePlayer(p.id,ctx.attackerId,!!ctx.deferWin); break; }
+  }
+  if(actualLost>0){ log(`${p.name} lost ${actualLost} life${actualLost===1?'':' points'}.`); toast(`${p.name} −${actualLost} ♥`,false,600); }
+  if(actualLost>0 && ctx.attackerId && charIs(p,'El Gringo') && p.alive && (ctx.type==='shot'||ctx.type==='gatling')){
+    const attacker=getPlayer(ctx.attackerId); if(attacker?.alive){ log(`${attacker.name} must take an arrow because of El Gringo.`); await giveArrow(attacker.id); }
+  }
+  renderGame();
+}
+
+async function eliminatePlayer(playerId,killerId,deferWin=false){
+  const p=getPlayer(playerId); if(!p.alive) return;
+  p.alive=false; p.hp=0; p.revealedRole=true;
+  state.arrowPool+=p.arrows; p.arrows=0; state.arrowPool=Math.min(9,state.arrowPool);
+  log(`${p.name} was eliminated. Role revealed: ${p.role}.`); toast(`${p.name} is out!`,true,1000);
+  for(const v of state.players){ if(v.alive && v.id!==p.id && charIs(v,'Vulture Sam')){ const before=v.hp; v.hp=Math.min(v.maxHp,v.hp+2); if(v.hp>before) log(`${v.name} gained ${v.hp-before} life from Vulture Sam.`); } }
+  if(state.playerCount===3){
+    const killer=getPlayer(killerId);
+    const target={Deputy:'Renegade',Renegade:'Outlaw',Outlaw:'Deputy'};
+    if(killer?.alive && target[killer.role]===p.role){ await endGame([killer.id],`${killer.name} personally eliminated the ${p.role}.`); return; }
+    state.threePlayerSuddenDeath=true;
+  }
+  if(!deferWin) await checkWin();
+}
+function recalcArrowPool(){ state.arrowPool=Math.max(0,9-state.players.reduce((s,p)=>s+p.arrows,0)); }
+
+async function checkWin(){
+  if(state.gameOver) return true;
+  const alive=alivePlayers();
+  if(state.playerCount===3){
+    if(state.threePlayerSuddenDeath && alive.length===1){ await endGame([alive[0].id],`${alive[0].name} is the last player standing.`); return true; }
+    return false;
+  }
+  const sheriff=state.players.find(p=>p.role==='Sheriff');
+  if(!sheriff?.alive){
+    if(alive.length===1 && alive[0].role==='Renegade'){ await endGame([alive[0].id],`${alive[0].name}, the Renegade, is the only survivor.`); }
+    else { await endGame(state.players.filter(p=>p.role==='Outlaw').map(p=>p.id),'The Sheriff was eliminated. The Outlaws win.'); }
+    return true;
+  }
+  const enemiesAlive=alive.some(p=>p.role==='Outlaw'||p.role==='Renegade');
+  if(!enemiesAlive){ await endGame(state.players.filter(p=>p.role==='Sheriff'||p.role==='Deputy').map(p=>p.id),'All Outlaws and Renegades are eliminated.'); return true; }
+  return false;
+}
+async function endGame(ids,reason){
+  if(state.gameOver) return; state.gameOver=true; state.winners=ids; state.resolving=false;
+  await sleep(650); const names=ids.map(id=>getPlayer(id)?.name).filter(Boolean);
+  $('winnerText').innerHTML=`${escapeHtml(names.join(', ')||'No survivor')}<br><span class="small">${escapeHtml(reason)}</span>`;
+  $('finalRoles').innerHTML=state.players.map(p=>`<div class="seat-row"><div><b>${escapeHtml(p.name)}</b><div class="small">${escapeHtml(p.character.name)}</div></div><span class="role-pill ${roleClass(p.role)}">${escapeHtml(p.role)}</span></div>`).join('');
+  showScreen('gameOverScreen');
+}
+$('newGameBtn').addEventListener('click',()=>{ state=null; $('diceRow').innerHTML=''; showScreen('setupScreen'); });
+
+function nextTurn(){
+  if(state.gameOver) return;
+  let idx=state.turnIndex; do{ idx=(idx+1)%state.players.length; }while(!state.players[idx].alive);
+  state.turnIndex=idx; state.dice=['arrow','dynamite','one','two','beer']; state.held=[false,false,false,false,false]; state.locked=[false,false,false,false,false]; state.rollsMade=0; state.resolving=false; state.gatlingActivatedThisTurn=false; state.slabUsedThisTurn=false;
+  state.maxRolls=charIs(currentPlayer(),'Lucky Duke')?4:3; renderGame(); setTimeout(startTurn,550);
+}
+async function startTurn(){
+  if(state.gameOver) return; const p=currentPlayer(); if(!p.alive){ nextTurn(); return; }
+  state.maxRolls=charIs(p,'Lucky Duke')?4:3; renderGame();
+  if(charIs(p,'Sid Ketchum')){
+    const candidates=alivePlayers().map(x=>x.id); let targetId;
+    if(p.isBot){ targetId=botChooseBeerTarget(p,candidates); await botPause(`${p.name} uses Sid Ketchum's ability.`); }
+    else targetId=await choosePlayer('Sid Ketchum','At the start of your turn, heal one alive player by 1.',candidates,false);
+    if(targetId){ const t=getPlayer(targetId); const before=t.hp; t.hp=Math.min(t.maxHp,t.hp+1); if(t.hp>before) log(`${p.name} healed ${t.name} by 1 at the start of the turn.`); renderGame(); }
+  }
+  if(p.isBot) await botTurn(p);
+}
+
+// ---------- SMART BOTS ----------
+async function botTurn(p){
+  await sleep(650);
+  while(p.alive && !state.gameOver && state.rollsMade<state.maxRolls){
+    const indices=state.rollsMade===0?[0,1,2,3,4]:[0,1,2,3,4].filter(i=>!state.held[i]&&!state.locked[i]);
+    if(!indices.length) break;
+    await botPause(`${p.name} rolls.`); await performRoll(indices);
+    if(state.gameOver||!p.alive||state.resolving||currentPlayer().id!==p.id) return;
+    if(state.rollsMade>=state.maxRolls) return; // performRoll resolves final automatically
+    botChooseHolds(p); renderGame(); await sleep(550);
+    const rerollable=[0,1,2,3,4].filter(i=>!state.held[i]&&!state.locked[i]);
+    if(!rerollable.length || botHappyWithRoll(p)) break;
+  }
+  if(!state.resolving && !state.gameOver && p.alive && currentPlayer().id===p.id) await resolveTurn();
+}
+async function botPause(message){
+  $('botThinking').style.display='flex'; $('botThinking').firstChild.textContent=message+' '; await sleep(620+cryptoInt(420));
+}
+function botChooseHolds(p){
+  const gat=countFace('gatling');
+  state.dice.forEach((f,i)=>{
+    if(state.locked[i]){ state.held[i]=true; return; }
+    let keep=false;
+    if(f==='arrow') keep=false;
+    else if(f==='dynamite') keep=!charIs(p,'Black Jack');
+    else if(f==='beer') keep=botHasUsefulBeer(p);
+    else if(f==='one'||f==='two') keep=legalTargets(p.id,f,alivePlayers().map(x=>x.id)).some(id=>botAttackScore(p,getPlayer(id))>8);
+    else if(f==='gatling') keep=botLikesGatling(p,gat);
+    state.held[i]=keep;
+  });
+  log(`${p.name} keeps ${state.dice.filter((f,i)=>state.held[i]||state.locked[i]).map(f=>FACE_LABEL[f]).join(', ')||'nothing'}.`);
+}
+function botHappyWithRoll(p){
+  const useful=state.dice.reduce((n,f,i)=>n+((state.held[i]||state.locked[i])?1:0),0);
+  const gat=countFace('gatling'), need=charIs(p,'Willy the Kid')?2:3;
+  return useful>=5 || (gat>=need && useful>=4);
+}
+function botHasUsefulBeer(p){
+  if(p.hp<p.maxHp) return true;
+  const sheriff=state.players.find(x=>x.role==='Sheriff'&&x.alive);
+  if((p.role==='Sheriff'||p.role==='Deputy'||p.role==='Renegade') && sheriff && sheriff.hp<sheriff.maxHp) return true;
+  return alivePlayers().some(x=>x.hp<x.maxHp && botLikelyAlly(p,x));
+}
+function botLikesGatling(p,gat){
+  const need=charIs(p,'Willy the Kid')?2:3; const sheriff=state.players.find(x=>x.role==='Sheriff'&&x.alive);
+  if(gat>=need-1) return true;
+  if(p.role==='Outlaw' && sheriff && sheriff.hp<=3) return true;
+  if(p.role==='Deputy' && sheriff && sheriff.hp<=2) return false;
+  return gat>=1 && alivePlayers().length>=4;
+}
+function botLikelyAlly(bot,target){
+  if(target.id===bot.id) return true;
+  if(target.role==='Sheriff') return bot.role==='Sheriff'||bot.role==='Deputy'||bot.role==='Renegade';
+  const s=state.suspicion[target.id]||0;
+  if(bot.role==='Deputy'||bot.role==='Sheriff') return s<0;
+  if(bot.role==='Outlaw') return s>1;
+  return false;
+}
+function botAttackScore(bot,target){
+  if(!target||!target.alive||target.id===bot.id) return -999;
+  const sheriff=state.players.find(x=>x.role==='Sheriff'&&x.alive); const alive=alivePlayers(); const susp=state.suspicion[target.id]||0;
+  if(state.playerCount===3){
+    const direct={Deputy:'Renegade',Renegade:'Outlaw',Outlaw:'Deputy'};
+    if(target.role===direct[bot.role]) return 100-target.hp*2;
+    return 5-target.hp;
+  }
+  if(bot.role==='Outlaw'){
+    if(target.role==='Sheriff') return 120-target.hp*2;
+    if(publicRole(target) && target.role==='Deputy') return 45-target.hp;
+    return 18-susp*5+(target.hp<=2?12:0);
+  }
+  if(bot.role==='Deputy'){
+    if(target.role==='Sheriff') return -999;
+    if(publicRole(target) && target.role==='Outlaw') return 100;
+    if(publicRole(target) && target.role==='Renegade') return 90;
+    return 18+susp*8+(target.hp<=2?6:0);
+  }
+  if(bot.role==='Sheriff'){
+    if(publicRole(target) && target.role==='Deputy') return -60;
+    if(publicRole(target) && (target.role==='Outlaw'||target.role==='Renegade')) return 100;
+    return 20+susp*8+(target.hp<=2?8:0);
+  }
+  // Renegade: preserve Sheriff until the field is thin, then go for the win.
+  if(bot.role==='Renegade'){
+    if(alive.length<=2 && target.role==='Sheriff') return 130;
+    if(target.role==='Sheriff') return sheriff.hp<=2?-30:5;
+    return 35+target.hp*3+susp*2;
+  }
+  return 0;
+}
+function botChooseAttackTarget(bot,candidateIds){
+  return candidateIds.map(id=>({id,score:botAttackScore(bot,getPlayer(id))+cryptoInt(5)})).sort((a,b)=>b.score-a.score)[0].id;
+}
+function botChooseBeerTarget(bot,candidateIds){
+  const c=candidateIds.map(id=>getPlayer(id)).filter(Boolean);
+  let best=bot, bestScore=-999;
+  for(const t of c){
+    if(!t.alive) continue; const missing=t.maxHp-t.hp; let score=missing*10;
+    if(t.id===bot.id) score+=28;
+    if(state.playerCount===3){ if(t.id!==bot.id) score-=20; }
+    else if(bot.role==='Deputy'||bot.role==='Sheriff'){
+      if(t.role==='Sheriff') score+=35; else score+=(state.suspicion[t.id]||0)<0?8:-5;
+    } else if(bot.role==='Outlaw'){
+      if(t.role==='Sheriff') score=-200; else score+=(state.suspicion[t.id]||0)>1?7:0;
+    } else if(bot.role==='Renegade'){
+      if(t.role==='Sheriff' && alivePlayers().length>2 && t.hp<=2) score+=25;
+    }
+    if(score>bestScore){bestScore=score;best=t;}
+  }
+  return best.id;
+}
+function botChooseArrowRemoval(bot,candidateIds){
+  if(candidateIds.includes(bot.id)) return bot.id;
+  const sheriff=state.players.find(x=>x.role==='Sheriff'&&x.alive);
+  if((bot.role==='Sheriff'||bot.role==='Deputy'||bot.role==='Renegade') && sheriff && candidateIds.includes(sheriff.id)) return sheriff.id;
+  return candidateIds.sort((a,b)=>getPlayer(b).arrows-getPlayer(a).arrows)[0];
+}
+function botChooseSlabShot(bot,selected){
+  let best=-1, bestScore=25;
+  selected.forEach((s,i)=>{
+    const t=getPlayer(s.targetId);
+    const score=botAttackScore(bot,t)+(t.hp<=2?35:0);
+    if(score>bestScore){ bestScore=score; best=i; }
+  });
+  return best;
+}
+function updateSuspicionFromAttack(attackerId,targetId,amount){
+  const target=getPlayer(targetId); if(!target) return;
+  if(target.role==='Sheriff') state.suspicion[attackerId]=(state.suspicion[attackerId]||0)+3*amount;
+  else if(publicRole(target) && target.role==='Outlaw') state.suspicion[attackerId]=(state.suspicion[attackerId]||0)-1*amount;
+}
+
+// ---------- RANGE / CHOICES ----------
+function legalTargets(attackerId,face,snapshotIds){
+  const p=getPlayer(attackerId); const ids=snapshotIds.filter(id=>getPlayer(id)?.alive); if(ids.length<=1) return [];
+  const idx=ids.indexOf(attackerId); if(idx<0) return [];
+  const byDist=d=>{
+    if(ids.length<=1) return [];
+    const l=ids[(idx-d%ids.length+ids.length)%ids.length], r=ids[(idx+d)%ids.length];
+    return [...new Set([l,r])].filter(id=>id!==attackerId);
+  };
+  let dists=[];
+  if(charIs(p,'Calamity Janet')) dists=[1,2];
+  else if(charIs(p,'Rose Doolan')) dists=face==='one'?[1,2]:[2,3];
+  else if(face==='two' && ids.length<=3) dists=[1];
+  else dists=[face==='one'?1:2];
+  return [...new Set(dists.flatMap(byDist))];
+}
+
+function choosePlayer(title,text,candidateIds,allowSkip=false){
+  return new Promise(resolve=>{
+    const grid=$('choiceGrid'); $('choiceTitle').textContent=title; $('choiceText').textContent=text; grid.innerHTML='';
+    candidateIds.forEach(id=>{
+      const p=getPlayer(id); const b=document.createElement('button'); b.innerHTML=`${escapeHtml(p.name)}<small>♥ ${p.hp}/${p.maxHp} • ➶ ${p.arrows}${publicRole(p)?' • '+escapeHtml(p.role):''}</small>`;
+      b.onclick=()=>{ closeChoice(); resolve(id); }; grid.appendChild(b);
+    });
+    if(allowSkip){ const b=document.createElement('button'); b.className='skip'; b.textContent='SKIP'; b.onclick=()=>{closeChoice();resolve(null)}; grid.appendChild(b); }
+    $('choiceBackdrop').classList.add('show');
+  });
+}
+function chooseShotToDouble(selected){
+  return new Promise(resolve=>{
+    $('choiceTitle').textContent='Slab the Killer'; $('choiceText').textContent='Which attack should deal 2 damage?'; const grid=$('choiceGrid'); grid.innerHTML='';
+    selected.forEach((s,i)=>{
+      const t=getPlayer(s.targetId); const b=document.createElement('button');
+      b.innerHTML=`Attack ${escapeHtml(t.name)}<small>Make this hit deal 2 damage</small>`;
+      b.onclick=()=>{closeChoice();resolve(i)}; grid.appendChild(b);
+    });
+    $('choiceBackdrop').classList.add('show');
+  });
+}
+
+function askYesNo(title,text){
+  return new Promise(resolve=>{
+    $('choiceTitle').textContent=title; $('choiceText').textContent=text; const grid=$('choiceGrid'); grid.innerHTML='';
+    const yes=document.createElement('button'); yes.textContent='YES'; yes.onclick=()=>{closeChoice();resolve(true)};
+    const no=document.createElement('button'); no.textContent='NO'; no.onclick=()=>{closeChoice();resolve(false)}; grid.append(yes,no); $('choiceBackdrop').classList.add('show');
+  });
+}
+function closeChoice(){ $('choiceBackdrop').classList.remove('show'); }
+
+function showPlayerInfo(id){
+  const p=getPlayer(id); if(!p) return;
+  const role=publicRole(p)||p.id==='human'?`<span class="role-pill ${roleClass(p.role)}">${escapeHtml(p.role)}</span>`:'<span class="role-pill">SECRET ROLE</span>';
+  $('infoContent').innerHTML=`<h2>${escapeHtml(p.name)} ${p.isBot?'<span class="small">BOT</span>':''}</h2><p>${role}</p><p><b>♥ ${p.hp}/${p.maxHp}</b> &nbsp; <b>➶ ${p.arrows}</b></p><div class="character-panel"><strong>${escapeHtml(p.character.name)}</strong><p style="margin:8px 0 0">${escapeHtml(p.character.desc)}</p></div>${!p.alive?'<p><b>Eliminated</b></p>':''}`;
+  $('infoBackdrop').classList.add('show');
+}
+$('closeInfoBtn').addEventListener('click',()=>$('infoBackdrop').classList.remove('show'));
+$('myCardBtn').addEventListener('click',()=>showPlayerInfo('human'));
+$('logBtn').addEventListener('click',()=>{
+  $('infoContent').innerHTML=`<h2>Game Log</h2><div class="log-list">${(state.log.length?state.log:['No actions yet.']).map(x=>`<div class="log-item">${escapeHtml(x)}</div>`).join('')}</div>`;
+  $('infoBackdrop').classList.add('show');
+});
+
+function escapeHtml(s){ return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+
+// Close info modal by tapping the dark area.
+$('infoBackdrop').addEventListener('click',e=>{ if(e.target===$('infoBackdrop')) $('infoBackdrop').classList.remove('show'); });
+
+})();
+</script>
+</body>
+</html>
