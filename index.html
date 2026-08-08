@@ -127,10 +127,20 @@
   .shot-arrow,.storm-arrow{position:absolute;width:112vw;height:clamp(14px,3.2vw,22px);border-radius:999px;background:linear-gradient(90deg,#5a301a 0 82%,#e9c67f 82% 86%,#6f3c1d 86% 100%);filter:drop-shadow(0 7px 5px rgba(0,0,0,.55));transform-origin:center;opacity:0}
   .shot-arrow:before,.storm-arrow:before{content:"";position:absolute;right:-42px;top:50%;transform:translateY(-50%);border-left:54px solid #e2bc72;border-top:29px solid transparent;border-bottom:29px solid transparent;filter:drop-shadow(0 5px 3px rgba(0,0,0,.35))}
   .shot-arrow:after,.storm-arrow:after{content:"";position:absolute;left:-26px;top:50%;transform:translateY(-50%);width:40px;height:40px;background:linear-gradient(45deg,transparent 43%,#bd8745 44% 56%,transparent 57%),linear-gradient(-45deg,transparent 43%,#bd8745 44% 56%,transparent 57%)}
-  .shot-arrow.range1{left:calc(100vw - 34px);top:50%;transform:translateY(-50%) rotate(180deg);animation:shotRightToLeft 6s cubic-bezier(.16,.8,.2,1) forwards}
-  .shot-arrow.range2{left:50%;top:calc(100vh - 26px);transform:translateX(-50%) rotate(-90deg);animation:shotBottomToTop 6s cubic-bezier(.16,.8,.2,1) forwards}
-  @keyframes shotRightToLeft{0%{opacity:0;transform:translateY(-50%) rotate(180deg)}16.7%{opacity:1;transform:translateY(-50%) rotate(180deg)}30%{opacity:1;transform:translate(-10vw,-50%) rotate(180deg)}80%{opacity:1;transform:translate(-108vw,-50%) rotate(180deg)}91%{opacity:1;transform:translate(-108vw,-50%) rotate(180deg)}100%{opacity:0;transform:translate(-108vw,-50%) rotate(180deg)}}
-  @keyframes shotBottomToTop{0%{opacity:0;transform:translateX(-50%) rotate(-90deg)}16.7%{opacity:1;transform:translateX(-50%) rotate(-90deg)}30%{opacity:1;transform:translate(-50%,-10vh) rotate(-90deg)}80%{opacity:1;transform:translate(-50%,-108vh) rotate(-90deg)}91%{opacity:1;transform:translate(-50%,-108vh) rotate(-90deg)}100%{opacity:0;transform:translate(-50%,-108vh) rotate(-90deg)}}
+  .shot-arrow.range1{left:calc(100vw - 34px);top:50%;transform:translateY(-50%) rotate(180deg);animation:shotRightToLeft 6s linear forwards}
+  .shot-arrow.range2{left:50%;top:calc(100vh - 26px);transform:translateX(-50%) rotate(-90deg);animation:shotBottomToTop 6s linear forwards}
+  @keyframes shotRightToLeft{
+    0%{opacity:0;transform:translateY(-50%) rotate(180deg)}
+    16.666%{opacity:1;transform:translateY(-50%) rotate(180deg)}
+    91.666%{opacity:1;transform:translate(-125vw,-50%) rotate(180deg)}
+    100%{opacity:0;transform:translate(-145vw,-50%) rotate(180deg)}
+  }
+  @keyframes shotBottomToTop{
+    0%{opacity:0;transform:translateX(-50%) rotate(-90deg)}
+    16.666%{opacity:1;transform:translateX(-50%) rotate(-90deg)}
+    91.666%{opacity:1;transform:translate(-50%,-125vh) rotate(-90deg)}
+    100%{opacity:0;transform:translate(-50%,-145vh) rotate(-90deg)}
+  }
   .gatling-flash{position:absolute;left:50%;top:52%;width:46px;height:46px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff4c9 0 12%,#f4b34d 13% 31%,rgba(214,56,31,.8) 32% 48%,transparent 50%);animation:gatFlash .23s steps(2,end) 6}
   .gatling-streak{position:absolute;left:50%;top:52%;width:62vw;max-width:520px;height:4px;background:linear-gradient(90deg,rgba(255,225,156,0),#ffd475 34%,#fff3c0 52%,#d9772a 78%,rgba(255,225,156,0));transform-origin:left center;opacity:0;animation:gatStreak .72s ease-out forwards}
   @keyframes gatFlash{0%,100%{scale:.7;opacity:.35}50%{scale:1.45;opacity:1}}
