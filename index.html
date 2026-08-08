@@ -68,23 +68,28 @@
   .turn-title{font-family:Impact,sans-serif;letter-spacing:.06em;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .top-actions{display:flex;gap:6px}
   .icon-btn{width:38px;height:34px;border:1px solid rgba(255,255,255,.17);border-radius:11px;background:rgba(255,255,255,.08);color:#ffe8bf;font-size:17px}
-  .players-strip{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.players-strip::-webkit-scrollbar{display:none}
-  .player-chip{flex:0 0 auto;min-width:112px;max-width:145px;border:1px solid rgba(255,255,255,.16);background:#352018;border-radius:13px;padding:7px 9px;color:#f8dfb7;position:relative}
+  .players-strip{display:flex;gap:9px;overflow-x:auto;scrollbar-width:none;padding:1px 0 4px}.players-strip::-webkit-scrollbar{display:none}
+  .player-chip{flex:0 0 auto;min-width:132px;max-width:172px;border:1px solid rgba(255,255,255,.16);background:#352018;border-radius:15px;padding:10px 11px 9px;color:#f8dfb7;position:relative;min-height:92px;text-align:left}
   .player-chip.active{border-color:#f3c466;box-shadow:0 0 0 2px rgba(243,196,102,.18),0 0 18px rgba(243,196,102,.18)}
   .player-chip.dead{filter:grayscale(1);opacity:.55}
-  .player-chip .pname{font-weight:950;font-size:13px;max-width:112px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .player-chip .stats{font-size:12px;margin-top:3px}.player-chip .char{font-size:10px;opacity:.7;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .sheriff-star{position:absolute;right:5px;top:4px;font-size:15px}
+  .player-chip .pname{font-weight:950;font-size:16px;line-height:1.05;max-width:142px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .player-chip .stats{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;font-weight:900;margin-top:7px;letter-spacing:.01em}
+  .player-chip .distance{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:10px;font-weight:900;letter-spacing:.09em;color:#f0c77f;margin-top:5px;text-transform:uppercase}
+  .player-chip .char{font-size:11px;opacity:.78;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sheriff-star{position:absolute;right:7px;top:6px;font-size:17px}
 
   .table-stage{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;background:
     radial-gradient(ellipse at 50% 40%,rgba(201,132,63,.20),transparent 52%),
     repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0 2px,transparent 2px 78px),
     linear-gradient(90deg,#24140f,#3d2418 35%,#2c1912 65%,#1d100c)}
   .table-stage:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(7deg,transparent 0 22px,rgba(0,0,0,.06) 23px 24px)}
-  .turn-banner{position:relative;z-index:4;text-align:center;padding:10px 12px 0}
+  .turn-banner{position:relative;z-index:4;text-align:center;padding:13px 86px 0;min-height:88px}
   .turn-banner .name{font-family:Impact,sans-serif;letter-spacing:.08em;font-size:clamp(24px,7vw,34px);text-transform:uppercase;text-shadow:0 3px 10px #000}
   .turn-banner .sub{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#dfba82;margin-top:3px}
-  .arrow-pool{display:inline-flex;gap:6px;align-items:center;background:rgba(15,7,5,.42);border:1px solid rgba(255,233,198,.14);border-radius:999px;padding:5px 9px;margin-top:7px;font-size:12px}
+  .arrow-pool{position:absolute;left:12px;top:10px;width:66px;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,7,5,.48);border:1px solid rgba(255,233,198,.18);border-radius:14px;padding:5px 6px;color:#f7ddb1;box-shadow:0 5px 14px rgba(0,0,0,.22)}
+  .arrow-pool .pool-number{font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif;font-size:27px;line-height:.9;color:#fff0cf}
+  .arrow-pool .pool-label{font:900 9px/1.05 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.08em;text-transform:uppercase;margin-top:5px}
+  .arrow-pool .pool-label span{display:block}
   .dice-area{position:relative;z-index:5;flex:1;min-height:390px;display:flex;align-items:stretch;justify-content:center;padding:4px 10px 8px}
   .dice-row{width:min(720px,100%);height:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));align-items:center;justify-items:center;column-gap:clamp(18px,8vw,72px);row-gap:clamp(10px,2.4vh,24px);perspective:1100px;padding:4px 0 8px}
   .die-wrap{width:clamp(92px,29vw,145px);height:clamp(92px,29vw,145px);position:relative;transition:transform .18s ease,filter .18s ease;cursor:pointer;user-select:none;justify-self:center}
@@ -397,11 +402,13 @@ function renderGame(){
   $('topTurnTitle').textContent=`${p.name}'s turn`;
   $('turnName').textContent=p.name;
   $('rollStatus').textContent=state.rollsMade===0 ? (p.isBot?'Bot preparing to roll':'Your turn') : `Roll ${state.rollsMade} of ${state.maxRolls}`;
-  $('arrowPool').innerHTML=`<span>➶</span><b>${state.arrowPool}</b> arrows left in the pool`;
+  $('arrowPool').innerHTML=`<div class="pool-number">${state.arrowPool}</div><div class="pool-label"><span>ARROWS</span><span>LEFT</span></div>`;
   const strip=$('playersStrip'); strip.innerHTML='';
   state.players.forEach(pl=>{
     const chip=document.createElement('button'); chip.className='player-chip'+(pl.id===p.id?' active':'')+(!pl.alive?' dead':''); chip.type='button';
-    chip.innerHTML=`${pl.role==='Sheriff'?'<span class="sheriff-star">★</span>':''}<div class="pname">${escapeHtml(pl.name)}${pl.isBot?' · BOT':''}</div><div class="stats">♥ ${Math.max(0,pl.hp)}/${pl.maxHp} &nbsp; ➶ ${pl.arrows}</div><div class="char">${escapeHtml(pl.character.name)}${publicRole(pl)?' · '+escapeHtml(pl.role):''}</div>`;
+    const dist=distanceFromHuman(pl.id);
+    const distText=pl.id==='human'?'YOU':(!pl.alive?'OUT':`DISTANCE ${dist}`);
+    chip.innerHTML=`${pl.role==='Sheriff'?'<span class="sheriff-star">★</span>':''}<div class="pname">${escapeHtml(pl.name)}${pl.isBot?' · BOT':''}</div><div class="stats">♥ ${Math.max(0,pl.hp)}/${pl.maxHp} &nbsp;&nbsp; ➶ ${pl.arrows}</div><div class="distance">${distText}</div><div class="char">${escapeHtml(pl.character.name)}${publicRole(pl)?' · '+escapeHtml(pl.role):''}</div>`;
     chip.addEventListener('click',()=>showPlayerInfo(pl.id)); strip.appendChild(chip);
   });
   for(let i=0;i<5;i++){
@@ -417,7 +424,7 @@ function renderGame(){
     $('resolveBtn').style.display=(state.rollsMade>0 && state.rollsMade<state.maxRolls && !state.resolving)?'block':'none';
     $('tapHint').textContent=state.rollsMade>0?'Tap dice to hold or release them. Dynamite locks automatically.':'';
   } else {
-    $('resolveBtn').style.display='none'; $('tapHint').textContent=p.isBot?'Watch the bot choose what to keep.':'';
+    $('resolveBtn').style.display='none'; $('tapHint').textContent=p.isBot?'':'';
   }
 }
 
@@ -680,15 +687,16 @@ async function botTurn(p){
     if(state.gameOver||!p.alive||state.resolving||currentPlayer().id!==p.id) return;
     if(state.rollsMade>=state.maxRolls) return; // performRoll resolves final automatically
     botChooseHolds(p); renderGame();
-    const kept=state.dice.filter((f,i)=>state.held[i]||state.locked[i]).map(f=>FACE_LABEL[f]).join(', ')||'nothing';
-    await announce(`${p.name} keeps ${kept}.`,false,ACTION_MESSAGE_MS);
     const rerollable=[0,1,2,3,4].filter(i=>!state.held[i]&&!state.locked[i]);
     if(!rerollable.length || botHappyWithRoll(p)) break;
   }
   if(!state.resolving && !state.gameOver && p.alive && currentPlayer().id===p.id) await resolveTurn();
 }
 async function botPause(message){
-  $('botThinking').style.display='flex'; $('botThinking').firstChild.textContent=message+' '; await sleep(BOT_ACTION_DELAY_MS);
+  $('botThinking').style.display='flex';
+  const p=currentPlayer();
+  $('botThinking').firstChild.textContent=(p?.isBot?`${p.name} is thinking…`:'Thinking…')+' ';
+  await sleep(BOT_ACTION_DELAY_MS);
 }
 function botChooseHolds(p){
   const gat=countFace('gatling');
@@ -805,6 +813,21 @@ function updateSuspicionFromAttack(attackerId,targetId,amount){
 }
 
 // ---------- RANGE / CHOICES ----------
+function tableDistance(fromId,toId,snapshotIds=alivePlayers().map(p=>p.id)){
+  if(fromId===toId) return 0;
+  const ids=snapshotIds.filter(id=>getPlayer(id)?.alive);
+  const a=ids.indexOf(fromId), b=ids.indexOf(toId);
+  if(a<0||b<0||ids.length<2) return '—';
+  const clockwise=(b-a+ids.length)%ids.length;
+  const counter=(a-b+ids.length)%ids.length;
+  return Math.min(clockwise,counter);
+}
+function distanceFromHuman(toId){
+  if(toId==='human') return 0;
+  const target=getPlayer(toId);
+  if(!target?.alive) return '—';
+  return tableDistance('human',toId);
+}
 function legalTargets(attackerId,face,snapshotIds){
   const p=getPlayer(attackerId); const ids=snapshotIds.filter(id=>getPlayer(id)?.alive); if(ids.length<=1) return [];
   const idx=ids.indexOf(attackerId); if(idx<0) return [];
@@ -856,7 +879,8 @@ function closeChoice(){ $('choiceBackdrop').classList.remove('show'); }
 function showPlayerInfo(id){
   const p=getPlayer(id); if(!p) return;
   const role=publicRole(p)||p.id==='human'?`<span class="role-pill ${roleClass(p.role)}">${escapeHtml(p.role)}</span>`:'<span class="role-pill">SECRET ROLE</span>';
-  $('infoContent').innerHTML=`<h2>${escapeHtml(p.name)} ${p.isBot?'<span class="small">BOT</span>':''}</h2><p>${role}</p><p><b>♥ ${p.hp}/${p.maxHp}</b> &nbsp; <b>➶ ${p.arrows}</b></p><div class="character-panel"><strong>${escapeHtml(p.character.name)}</strong><p style="margin:8px 0 0">${escapeHtml(p.character.desc)}</p></div>${!p.alive?'<p><b>Eliminated</b></p>':''}`;
+  const distanceLine=p.id==='human'?'You':(!p.alive?'Eliminated':`Distance from you: ${distanceFromHuman(p.id)}`);
+  $('infoContent').innerHTML=`<h2>${escapeHtml(p.name)} ${p.isBot?'<span class="small">BOT</span>':''}</h2><p>${role}</p><p><b>♥ ${p.hp}/${p.maxHp}</b> &nbsp; <b>➶ ${p.arrows}</b></p><p><b>${escapeHtml(distanceLine)}</b></p><div class="character-panel"><strong>${escapeHtml(p.character.name)}</strong><p style="margin:8px 0 0">${escapeHtml(p.character.desc)}</p></div>${!p.alive?'<p><b>Eliminated</b></p>':''}`;
   $('infoBackdrop').classList.add('show');
 }
 $('closeInfoBtn').addEventListener('click',()=>$('infoBackdrop').classList.remove('show'));
