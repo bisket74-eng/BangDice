@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#24140f" />
 <title>BANG! Dice — Local Bot Edition</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-bang-192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-bang-512.png" />
+<link rel="apple-touch-icon" href="icons/icon-bang-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="BANG! Dice" />
+<meta name="description" content="A western dice showdown against bots — roll, hold, shoot, and survive the arrow attack." />
 <style>
   :root{
     --ink:#2a1710;
@@ -156,6 +165,14 @@
   .modal-backdrop{display:none;position:fixed;z-index:100;inset:0;background:rgba(8,4,3,.72);align-items:flex-end;justify-content:center;padding:12px}.modal-backdrop.show{display:flex}
   .modal{width:min(520px,100%);max-height:min(78dvh,700px);overflow:auto;background:linear-gradient(#edd09b,#d7a565);color:#2a1710;border:2px solid #8b5a2c;border-radius:23px;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,.55)}
   .modal h2{font-size:23px;margin-bottom:6px}.modal p{line-height:1.35}.choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}.choice-grid button{min-height:55px;border:1px solid #80522c;border-radius:14px;background:#fff0cf;color:#2a1710;font-weight:900;padding:9px}.choice-grid button small{display:block;font-weight:600;opacity:.7;margin-top:3px}.choice-grid .skip{grid-column:1/-1;background:#6c4a31;color:#ffeac8}.modal-actions{display:flex;gap:9px;margin-top:14px}.modal-actions button{flex:1}
+  .rules-body{font-size:14px;line-height:1.42}
+  .rules-body h3{font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif;letter-spacing:.05em;font-size:18px;color:#7d1f1a;margin:16px 0 6px;border-bottom:1px solid rgba(94,45,18,.3);padding-bottom:3px}
+  .rules-body p{margin:0 0 8px}
+  .rules-body ul{margin:0 0 8px;padding-left:19px}
+  .rules-body li{margin-bottom:5px}
+  .rules-face{display:grid;grid-template-columns:26px 1fr;gap:6px 9px;align-items:start;margin:0 0 8px}
+  .rules-face b{font-size:17px;text-align:center;line-height:1.15}
+  .rules-note{background:rgba(255,255,255,.3);border:1px solid rgba(86,44,18,.28);border-radius:12px;padding:9px 11px;margin:10px 0}
   .log-list{display:grid;gap:8px;font-size:14px}.log-item{--log-accent:#8b5a2c;padding:10px 11px 10px 13px;background:linear-gradient(90deg,color-mix(in srgb,var(--log-accent) 18%,rgba(255,255,255,.24)),rgba(255,255,255,.16));border-radius:11px;border:1px solid color-mix(in srgb,var(--log-accent) 36%,rgba(80,40,16,.17));border-left:5px solid var(--log-accent);line-height:1.35}.log-item.system{--log-accent:#7d6047}
   .role-pill{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.07em;background:#593622;color:#ffe2b2}
   .role-pill.sheriff{background:#8b5b13}.role-pill.outlaw{background:#7d211f}.role-pill.deputy{background:#315d74}.role-pill.renegade{background:#4d4d4d}
@@ -214,7 +231,7 @@
     <div class="turnline">
       <div id="topTurnTitle" class="turn-title">TURN</div>
       <div class="top-actions">
-        <button id="myCardBtn" class="icon-btn" title="My role and character">★</button>
+        <button id="myCardBtn" class="icon-btn" title="How to play — rules">★</button>
         <button id="logBtn" class="icon-btn" title="Game log">☰</button>
       </div>
     </div>
@@ -1008,7 +1025,52 @@ function showPlayerInfo(id){
   $('infoBackdrop').classList.add('show');
 }
 $('closeInfoBtn').addEventListener('click',()=>$('infoBackdrop').classList.remove('show'));
-$('myCardBtn').addEventListener('click',()=>showPlayerInfo('human'));
+function showRules(){
+  $('infoContent').innerHTML=`<h2>How to Play</h2><div class="rules-body">
+  <p>Everyone has a secret role and a character with a special ability. On your turn you roll five dice up to three times, then all results are carried out.</p>
+
+  <h3>Your Turn</h3>
+  <ul>
+    <li>Tap <b>ROLL</b> to throw all five dice.</li>
+    <li>Tap a die to <b>hold</b> it so it won't be rerolled, then roll again. You get three rolls total (Lucky Duke gets four).</li>
+    <li>Tap <b>RESOLVE</b> at any time to stop early and carry out what you have.</li>
+    <li>Dynamite dice <b>lock</b> — they can never be rerolled.</li>
+    <li>If you ever show <b>three Dynamites</b>, your turn stops immediately, you lose 1 life, and only the results already on the dice happen.</li>
+  </ul>
+
+  <h3>The Dice Faces</h3>
+  <div class="rules-face">
+    <b class="sym arrow">➶</b><span><b>Arrow</b> — take an arrow the instant it is rolled. Arrows hurt you later.</span>
+    <b class="sym dynamite">◆</b><span><b>Dynamite</b> — locked for the rest of your turn. Three of them end your turn and cost you 1 life.</span>
+    <b class="sym target">①</b><span><b>Bull's-eye 1</b> — shoot a player sitting <b>one seat</b> away (left or right) for 1 damage.</span>
+    <b class="sym target">②</b><span><b>Bull's-eye 2</b> — shoot a player sitting <b>two seats</b> away for 1 damage.</span>
+    <b class="sym beer">🍺</b><span><b>Beer</b> — restore 1 life to any living player, including yourself. Never above their maximum.</span>
+    <b class="sym gatling">✹</b><span><b>Gatling</b> — three Gatlings fire on everyone else for 1 damage each and discard all of your arrows (Willy the Kid only needs two).</span>
+  </div>
+  <p class="small">Distance is counted around the table and eliminated players are skipped, so seats close up as the game goes on.</p>
+
+  <h3>Arrows and the Arrow Attack</h3>
+  <p>The pool holds nine arrows. Every Arrow you roll moves one from the pool onto you right away. The moment the pool empties, the <b>Arrow Attack</b> hits: every player loses 1 life for each arrow they hold, all arrows return to the pool, and play continues.</p>
+  <p>Holding arrows is dangerous — the more you have when the pool runs dry, the harder you're hit.</p>
+
+  <h3>Roles and Winning</h3>
+  <ul>
+    <li><b>Sheriff</b> — revealed from the start, gets +2 life. Wins with the Deputies when every Outlaw and Renegade is gone.</li>
+    <li><b>Deputy</b> — secretly protects the Sheriff and wins alongside him.</li>
+    <li><b>Outlaw</b> — wins the moment the Sheriff is eliminated.</li>
+    <li><b>Renegade</b> — wants to be the last player standing: the Sheriff must fall, but only with the Renegade still alive and alone.</li>
+  </ul>
+  <p>In a three-player game there are no teams — roles are all revealed and the last player alive wins.</p>
+
+  <h3>Damage and Elimination</h3>
+  <p>Lose all your life points and you are out. Beer can heal you at any time before that, but never past your character's starting life total.</p>
+
+  <div class="rules-note"><b>Tip:</b> tap any player's card in the strip along the top to see their life, arrows, distance from you, and character ability. Tap your own card to check your secret role. The ☰ button opens the full game log.</div>
+  </div>`;
+  $('infoBackdrop').classList.add('show');
+  $('infoBackdrop').querySelector('.modal').scrollTop=0;
+}
+$('myCardBtn').addEventListener('click',showRules);
 $('logBtn').addEventListener('click',()=>{
   const items=state.log.length?state.log:[{msg:'No actions yet.',actorId:null,kind:'system'}];
   $('infoContent').innerHTML=`<h2>Game Log</h2><div class="log-list">${items.map(x=>{
@@ -1025,6 +1087,14 @@ function escapeHtml(s){ return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;'
 $('infoBackdrop').addEventListener('click',e=>{ if(e.target===$('infoBackdrop')) $('infoBackdrop').classList.remove('show'); });
 
 })();
+</script>
+<script>
+  // Offline support — only works over http(s), skipped on file:// so local testing still runs.
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW registration failed', err));
+    });
+  }
 </script>
 </body>
 </html>
