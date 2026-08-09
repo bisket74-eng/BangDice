@@ -104,7 +104,13 @@
   .icon-btn{width:38px;height:34px;border:1px solid rgba(255,255,255,.17);border-radius:11px;background:rgba(255,255,255,.08);color:#ffe8bf;font-size:17px}
   .players-strip{display:flex;gap:9px;overflow-x:auto;scrollbar-width:none;padding:1px 0 4px}.players-strip::-webkit-scrollbar{display:none}
   .player-chip{flex:0 0 auto;min-width:140px;max-width:182px;border:1px solid color-mix(in srgb,var(--player-accent,#c58a55) 48%,rgba(255,255,255,.14));background:linear-gradient(180deg,color-mix(in srgb,var(--player-accent,#c58a55) 12%,#352018),#352018 66%);border-radius:15px;padding:10px 11px 9px;color:#f8dfb7;position:relative;min-height:92px;text-align:left;box-shadow:inset 0 3px 0 color-mix(in srgb,var(--player-accent,#c58a55) 62%,transparent)}
-  .player-chip.active{border-color:#f3c466;box-shadow:inset 0 3px 0 var(--player-accent,#f3c466),0 0 0 2px rgba(243,196,102,.18),0 0 18px rgba(243,196,102,.18)}
+  .player-chip.active{border-color:#ffd479;border-width:2px;padding:9px 10px 8px;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--player-accent,#c58a55) 30%,#40261b),#3d2419 72%);
+    box-shadow:inset 0 4px 0 var(--player-accent,#f3c466),0 0 0 3px rgba(255,205,110,.42),0 0 26px rgba(255,199,96,.34);
+    transform:translateY(-2px)}
+  .player-chip.active .pname{color:#fff2d4}
+  .player-chip.active .char{padding-right:50px}
+  .player-chip.active:after{content:'TURN';position:absolute;right:8px;bottom:7px;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:9px;font-weight:900;letter-spacing:.14em;color:#241309;background:#ffd479;border-radius:5px;padding:2px 5px}
   .player-chip.dead{filter:grayscale(1);opacity:.55}
   .player-chip .pname{font-weight:950;font-size:16px;line-height:1.05;max-width:142px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .player-chip .stats{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:16px;font-weight:900;margin-top:7px;letter-spacing:.01em}
@@ -188,6 +194,8 @@
   @keyframes stormFly{0%{opacity:0;transform:translate(var(--sx),var(--sy)) rotate(var(--rot)) scale(.8)}10%{opacity:.95}86%{opacity:.95}100%{opacity:0;transform:translate(var(--ex),var(--ey)) rotate(var(--rot)) scale(1.05)}}
 
   .modal-backdrop{display:none;position:fixed;z-index:100;inset:0;background:rgba(8,4,3,.72);align-items:flex-end;justify-content:center;padding:12px}.modal-backdrop.show{display:flex}
+  .modal-backdrop.show .modal{animation:modalPop .24s cubic-bezier(.2,.9,.3,1.2)}
+  @keyframes modalPop{0%{transform:translateY(16px) scale(.97);opacity:0}100%{transform:none;opacity:1}}
   .modal{width:min(520px,100%);max-height:min(78dvh,700px);overflow:auto;background:linear-gradient(#edd09b,#d7a565);color:#2a1710;border:2px solid #8b5a2c;border-radius:23px;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,.55)}
   .modal h2{font-size:23px;margin-bottom:6px}.modal p{line-height:1.35}.choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}.choice-grid button{min-height:55px;border:1px solid #80522c;border-radius:14px;background:#fff0cf;color:#2a1710;font-weight:900;padding:9px}.choice-grid button small{display:block;font-weight:600;opacity:.7;margin-top:3px}.choice-grid .skip{grid-column:1/-1;background:#6c4a31;color:#ffeac8}.modal-actions{display:flex;gap:9px;margin-top:14px}.modal-actions button{flex:1}
   .rules-body{font-size:14px;line-height:1.42}
@@ -215,7 +223,7 @@
   .seat-row.mine{outline:2px solid #7d1f1a;outline-offset:-2px}
   .conn-note{font-size:12px;text-align:center;margin-top:10px;opacity:.75;min-height:16px}
   .conn-note.bad{color:#7d1f1a;opacity:1;font-weight:800}
-  .log-list{display:grid;gap:8px;font-size:14px}.log-item{--log-accent:#8b5a2c;padding:10px 11px 10px 13px;background:linear-gradient(90deg,color-mix(in srgb,var(--log-accent) 18%,rgba(255,255,255,.24)),rgba(255,255,255,.16));border-radius:11px;border:1px solid color-mix(in srgb,var(--log-accent) 36%,rgba(80,40,16,.17));border-left:5px solid var(--log-accent);line-height:1.35}.log-item.system{--log-accent:#7d6047}
+  .log-list{display:grid;gap:8px;font-size:14px}.log-item{--log-accent:#8b5a2c;padding:10px 11px 10px 13px;background:linear-gradient(90deg,color-mix(in srgb,var(--log-accent) 18%,rgba(255,255,255,.24)),rgba(255,255,255,.16));border-radius:11px;border:1px solid color-mix(in srgb,var(--log-accent) 36%,rgba(80,40,16,.17));border-left:7px solid var(--log-accent);line-height:1.35}.log-item.system{--log-accent:#7d6047}
   .role-pill{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.07em;background:#593622;color:#ffe2b2}
   .pcard-top .role-pill{font-size:16px;padding:7px 15px;letter-spacing:.09em;margin-top:9px}
   .role-pill.sheriff{background:#8b5b13}.role-pill.outlaw{background:#7d211f}.role-pill.deputy{background:#315d74}.role-pill.renegade{background:#4d4d4d}
@@ -346,7 +354,9 @@
 'use strict';
 
 const BOT_NAMES = ['Vicki','Zella','Bram','Orla','Rook','Sable','Jory','Nixie','Calder','Fenn','Maris','Zev'];
-const PLAYER_TONES = ['#c97a3d','#a85d38','#d1a15f','#8f5f3f','#c48652','#9a704e','#d0b17b','#ad6f45'];
+// Eight separate hues rather than eight browns, so a change of speaker in the
+// log is obvious at a glance. Still muted enough to sit in the western palette.
+const PLAYER_TONES = ['#c9603a','#e0b23f','#7fa04e','#3d92a6','#9d5fa0','#9c2f34','#6f83c0','#cf8fa0'];
 const FACE_ORDER = ['arrow','dynamite','one','two','beer','gatling'];
 const FACE_LABEL = {arrow:'Arrow',dynamite:'Dynamite',one:'Bull\'s-eye 1',two:'Bull\'s-eye 2',beer:'Beer',gatling:'Gatling'};
 const FACE_SYMBOL = {arrow:'➶',dynamite:'◆',one:'①',two:'②',beer:'🍺',gatling:'✹'};
@@ -634,6 +644,7 @@ function renderLobby(){
 
 $('startBtn').addEventListener('click',()=>{ if(isHost()) setupGame(); });
 function setupGame(){
+  lastCenteredId=null;
   const seats=state.seats||[];
   state.players=[];
   let botIndex=0;
@@ -699,14 +710,24 @@ function renderGame(){
   $('turnName').textContent=p.name;
   $('rollStatus').textContent=state.rollsMade===0 ? (p.isBot?'Bot preparing to roll':'Your turn') : `Roll ${state.rollsMade} of ${state.maxRolls}`;
   $('arrowPool').innerHTML=`<div class="pool-number">${state.arrowPool}</div><div class="pool-label"><span>ARROWS</span><span>LEFT</span></div>`;
-  const strip=$('playersStrip'); strip.innerHTML='';
+  const strip=$('playersStrip');
+  const keptScroll=strip.scrollLeft;      // rebuilding wipes the scroll position
+  strip.innerHTML='';
+  let activeChip=null;
   state.players.forEach(pl=>{
     const chip=document.createElement('button'); chip.className='player-chip'+(pl.id===p.id?' active':'')+(!pl.alive?' dead':''); chip.type='button'; chip.style.setProperty('--player-accent',playerTone(pl.id));
     const dist=distanceFromHuman(pl.id);
     const distText=pl.id===MY_ID?'YOU':(!pl.alive?'OUT':`DISTANCE ${dist}`);
     chip.innerHTML=`${pl.role==='Sheriff'?'<span class="sheriff-star">★</span>':''}<div class="pname">${escapeHtml(pl.name)}${pl.isBot?' · BOT':''}</div><div class="stats">♥ ${Math.max(0,pl.hp)}/${pl.maxHp} &nbsp;&nbsp; ➶ ${pl.arrows}</div><div class="distance">${distText}</div><div class="char">${escapeHtml(pl.character.name)}${publicRole(pl)?' · '+escapeHtml(pl.role):''}</div>`;
     chip.addEventListener('click',()=>showPlayerInfo(pl.id)); strip.appendChild(chip);
+    if(pl.id===p.id) activeChip=chip;
   });
+  strip.scrollLeft=keptScroll;
+  // Only nudge the strip when the turn actually moves, so scrolling by hand sticks.
+  if(activeChip && lastCenteredId!==p.id){
+    lastCenteredId=p.id;
+    centerChip(strip,activeChip);
+  }
   for(let i=0;i<5;i++){
     const wrap=$('diceRow').children[i]; wrap.classList.toggle('held',!!state.held[i]&&!state.locked[i]); wrap.classList.toggle('locked',!!state.locked[i]);
     const die=wrap.querySelector('.die'); die.style.transform=ROTATION[state.dice[i]];
@@ -725,6 +746,14 @@ function renderGame(){
   }
   if(netMode==='host') pushState();
   saveSoon();
+}
+
+let lastCenteredId=null;
+function centerChip(strip,chip){
+  const target=chip.offsetLeft-(strip.clientWidth-chip.offsetWidth)/2;
+  const left=Math.max(0,Math.min(target,strip.scrollWidth-strip.clientWidth));
+  try{ strip.scrollTo({left,behavior:'smooth'}); }
+  catch(e){ strip.scrollLeft=left; }
 }
 
 function toggleHold(i){
@@ -852,12 +881,22 @@ async function resolveTurn(fromDynamite=false){
 
   const snapshot=alivePlayers().map(x=>x.id);
   const selected=[];
-  for(const shot of shots){
+  // Only shots with a legal target get asked about, so "shot 2 of 3" matches
+  // the number of prompts the player actually sees.
+  const liveShots=shots.filter(sh=>legalTargets(p.id,sh.face,snapshot).length);
+  for(let n=0;n<liveShots.length;n++){
+    const shot=liveShots[n];
     const candidates=legalTargets(p.id,shot.face,snapshot);
     if(!candidates.length) continue;
     let targetId;
     if(p.isBot){ targetId=botChooseAttackTarget(p,candidates,shot.face); await botPause(); }
-    else targetId=await askChoosePlayer(p.id,`${FACE_LABEL[shot.face]}`,'Choose a legal target.',candidates,false);
+    else {
+      if(n>0) await promptBeat();
+      const title=liveShots.length>1?`${FACE_LABEL[shot.face]} — shot ${n+1} of ${liveShots.length}`:`${FACE_LABEL[shot.face]}`;
+      const picked=selected.map(x=>getPlayer(x.targetId)?.name).filter(Boolean);
+      const text=picked.length?`Choose a target. Already aimed at: ${picked.join(', ')}.`:'Choose a legal target.';
+      targetId=await askChoosePlayer(p.id,title,text,candidates,false);
+    }
     if(targetId) selected.push({targetId,damage:shot.damage,face:shot.face,distance:tableDistance(p.id,targetId,snapshot)});
   }
   if(charIs(p,'Slab the Killer') && beers>0 && selected.length && !state.slabUsedThisTurn){
@@ -881,17 +920,24 @@ async function resolveTurn(fromDynamite=false){
   await checkWin(); if(state.gameOver){ state.resolving=false; return; }
 
   // Beer is after shots.
+  const beerTotal=beers;
+  const healed=[];
   for(let b=0;b<beers;b++){
     const candidates=alivePlayers().map(x=>x.id);
     if(!candidates.length) break;
     let targetId;
     if(p.isBot){ targetId=botChooseBeerTarget(p,candidates); await botPause(); }
-    else targetId=await askChoosePlayer(p.id,'Beer','Choose a player to heal.',candidates,false);
+    else {
+      if(b>0) await promptBeat();
+      const title=beerTotal>1?`Beer — heal ${b+1} of ${beerTotal}`:'Beer';
+      const text=healed.length?`Choose a player to heal. Already healed: ${healed.join(', ')}.`:'Choose a player to heal.';
+      targetId=await askChoosePlayer(p.id,title,text,candidates,false);
+    }
     if(targetId){
       const t=getPlayer(targetId); const before=t.hp; let heal=1;
       if(charIs(p,'Jesse Jones') && targetId===p.id && p.hp<=4) heal=2;
       t.hp=clamp(t.hp+heal,0,t.maxHp);
-      const gained=t.hp-before; log(`${p.name} gave Beer to ${t.name}${gained?` (+${gained} life)`:' (already at maximum)'}.`);
+      const gained=t.hp-before; healed.push(t.name); log(`${p.name} gave Beer to ${t.name}${gained?` (+${gained} life)`:' (already at maximum)'}.`);
       if(targetId===state.players.find(x=>x.role==='Sheriff')?.id && gained>0) state.suspicion[p.id]-=2;
       renderGame();
     }
@@ -905,7 +951,11 @@ async function resolveTurn(fromDynamite=false){
       if(!candidates.length) break;
       let targetId;
       if(p.isBot) targetId=botChooseArrowRemoval(p,candidates);
-      else targetId=await askChoosePlayer(p.id,'Kit Carlson','Remove one arrow from a player, or skip.',candidates,true);
+      else {
+        if(g>0) await promptBeat();
+        const title=gatlings>1?`Kit Carlson — arrow ${g+1} of ${gatlings}`:'Kit Carlson';
+        targetId=await askChoosePlayer(p.id,title,'Remove one arrow from a player, or skip.',candidates,true);
+      }
       if(targetId){ const t=getPlayer(targetId); t.arrows--; state.arrowPool++; log(`${p.name} removed one of ${t.name}'s arrows.`); renderGame(); }
     }
   }
@@ -1251,6 +1301,13 @@ function askYesNo(title,text){
   });
 }
 function closeChoice(){ $('choiceBackdrop').classList.remove('show'); }
+
+// A short gap with the panel fully shut between back-to-back questions. Without
+// it the next question replaces the last one in place and reads as a dead tap.
+async function promptBeat(){
+  closeChoice();
+  await sleep(360);
+}
 
 function showPlayerInfo(id){
   const p=getPlayer(id); if(!p) return;
