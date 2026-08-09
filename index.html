@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=6,user-scalable=yes" />
 <meta name="theme-color" content="#24140f" />
 <title>BANG! Dice — Local Bot Edition</title>
 <link rel="manifest" href="manifest.json" />
@@ -31,7 +31,10 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;min-height:100%;background:#180e0b;color:var(--cream);font-family:Georgia,"Times New Roman",serif}
-  body{min-height:100dvh;overflow-x:hidden}
+  /* overscroll-behavior stops the browser's pull-to-refresh and bounce, so a
+     stray downward swipe can no longer reload the page mid-game. */
+  html{overscroll-behavior:none}
+  body{min-height:100dvh;overflow-x:hidden;overscroll-behavior-y:contain}
   button,input,select{font:inherit}
   button{touch-action:manipulation}
   .screen{display:none;min-height:100dvh}
@@ -68,7 +71,28 @@
   .bot-on-start{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#704327}
   .reveal-role{font-family:Impact,sans-serif;font-size:42px;letter-spacing:.06em;color:#801f1b;text-align:center;margin:18px 0 8px}
   .character-panel{border:2px solid rgba(88,47,22,.35);border-radius:18px;padding:15px;margin:15px 0;background:rgba(255,255,255,.22)}
-  .character-panel strong{font-size:21px}
+  .character-panel strong{font-size:24px}
+
+  /* Player card: identity on the left, vital numbers filling the space on the right. */
+  .pcard-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start}
+  .pcard-name{font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif;font-size:38px;line-height:1;letter-spacing:.02em;color:#5e2d12;word-break:break-word}
+  .pcard-bot{font-size:14px;font-weight:900;letter-spacing:.1em;opacity:.6;vertical-align:middle}
+  .pcard-vitals{display:grid;gap:8px;justify-items:end;text-align:right}
+  .pcard-stat{display:flex;align-items:baseline;gap:9px;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1}
+  .pcard-stat .glyph{font-size:34px}
+  .pcard-stat .val{font-size:40px;font-weight:900;letter-spacing:-.01em}
+  .pcard-stat .val .of{font-size:24px;font-weight:800;opacity:.62}
+  .pcard-stat.life .glyph,.pcard-stat.life .val{color:#8e211d}
+  .pcard-stat.arrows .glyph,.pcard-stat.arrows .val{color:#2c6798}
+  .pcard-stat .cap{display:block;font-size:11px;letter-spacing:.14em;font-weight:900;opacity:.6;text-transform:uppercase}
+  .pcard-distance{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:22px;font-weight:900;letter-spacing:.02em;color:#5e2d12;margin:14px 0 0;padding:10px 13px;border-radius:13px;background:rgba(255,255,255,.34);border:1px solid rgba(86,44,18,.28)}
+  .pcard-distance b{font-size:26px;color:#8e211d}
+  .pcard-dead{margin-top:12px;font-size:20px;font-weight:900;color:#8e211d;letter-spacing:.04em}
+  @media (max-width:360px){
+    .pcard-name{font-size:31px}
+    .pcard-stat .val{font-size:34px}
+    .pcard-stat .glyph{font-size:29px}
+  }
   .role-cover{height:150px;border-radius:18px;display:grid;place-items:center;text-align:center;background:linear-gradient(145deg,#3a1a12,#120907);color:#f7d59c;border:2px solid #7e4a29;font-weight:950;cursor:pointer;margin:14px 0;box-shadow:inset 0 0 0 5px rgba(255,255,255,.03)}
 
   /* GAME */
@@ -79,13 +103,13 @@
   .top-actions{display:flex;gap:6px}
   .icon-btn{width:38px;height:34px;border:1px solid rgba(255,255,255,.17);border-radius:11px;background:rgba(255,255,255,.08);color:#ffe8bf;font-size:17px}
   .players-strip{display:flex;gap:9px;overflow-x:auto;scrollbar-width:none;padding:1px 0 4px}.players-strip::-webkit-scrollbar{display:none}
-  .player-chip{flex:0 0 auto;min-width:132px;max-width:172px;border:1px solid color-mix(in srgb,var(--player-accent,#c58a55) 48%,rgba(255,255,255,.14));background:linear-gradient(180deg,color-mix(in srgb,var(--player-accent,#c58a55) 12%,#352018),#352018 66%);border-radius:15px;padding:10px 11px 9px;color:#f8dfb7;position:relative;min-height:92px;text-align:left;box-shadow:inset 0 3px 0 color-mix(in srgb,var(--player-accent,#c58a55) 62%,transparent)}
+  .player-chip{flex:0 0 auto;min-width:140px;max-width:182px;border:1px solid color-mix(in srgb,var(--player-accent,#c58a55) 48%,rgba(255,255,255,.14));background:linear-gradient(180deg,color-mix(in srgb,var(--player-accent,#c58a55) 12%,#352018),#352018 66%);border-radius:15px;padding:10px 11px 9px;color:#f8dfb7;position:relative;min-height:92px;text-align:left;box-shadow:inset 0 3px 0 color-mix(in srgb,var(--player-accent,#c58a55) 62%,transparent)}
   .player-chip.active{border-color:#f3c466;box-shadow:inset 0 3px 0 var(--player-accent,#f3c466),0 0 0 2px rgba(243,196,102,.18),0 0 18px rgba(243,196,102,.18)}
   .player-chip.dead{filter:grayscale(1);opacity:.55}
   .player-chip .pname{font-weight:950;font-size:16px;line-height:1.05;max-width:142px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .player-chip .stats{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;font-weight:900;margin-top:7px;letter-spacing:.01em}
-  .player-chip .distance{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:10px;font-weight:900;letter-spacing:.09em;color:#f0c77f;margin-top:5px;text-transform:uppercase}
-  .player-chip .char{font-size:11px;opacity:.78;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .player-chip .stats{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:16px;font-weight:900;margin-top:7px;letter-spacing:.01em}
+  .player-chip .distance{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;font-weight:900;letter-spacing:.05em;color:#ffd694;margin-top:6px;text-transform:uppercase}
+  .player-chip .char{font-size:12px;opacity:.82;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sheriff-star{position:absolute;right:7px;top:6px;font-size:17px}
 
   .table-stage{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;background:
@@ -180,11 +204,20 @@
   .room-code{font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif;font-size:46px;letter-spacing:.22em;text-align:center;color:#7d1f1a;text-shadow:0 2px 0 rgba(255,255,255,.5);margin:6px 0 2px;padding-left:.22em}
   .room-code-label{text-align:center;font-size:11px;letter-spacing:.16em;font-weight:900;opacity:.7}
   #joinCode{text-transform:uppercase;letter-spacing:.3em;text-align:center;font-weight:900;font-size:24px}
+  #joinCode::placeholder{color:rgba(42,23,16,.3);font-weight:700}
+  #joinCode::-webkit-input-placeholder{color:rgba(42,23,16,.3);font-weight:700}
+  .resume-bar{background:rgba(125,31,26,.12);border:1px solid rgba(125,31,26,.45);border-radius:15px;padding:12px;margin-bottom:14px}
+  .resume-bar p{font-size:13px;margin:0 0 10px;line-height:1.35}
+  .resume-bar .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .resume-bar button{min-height:44px;border-radius:12px;font-weight:900;font-size:13px;border:1px solid #8b5a2c}
+  .resume-bar .go{background:#7d1f1a;color:#ffe9c4;border-color:#5d1512}
+  .resume-bar .drop{background:rgba(255,255,255,.3);color:#4a2a15}
   .seat-row.mine{outline:2px solid #7d1f1a;outline-offset:-2px}
   .conn-note{font-size:12px;text-align:center;margin-top:10px;opacity:.75;min-height:16px}
   .conn-note.bad{color:#7d1f1a;opacity:1;font-weight:800}
   .log-list{display:grid;gap:8px;font-size:14px}.log-item{--log-accent:#8b5a2c;padding:10px 11px 10px 13px;background:linear-gradient(90deg,color-mix(in srgb,var(--log-accent) 18%,rgba(255,255,255,.24)),rgba(255,255,255,.16));border-radius:11px;border:1px solid color-mix(in srgb,var(--log-accent) 36%,rgba(80,40,16,.17));border-left:5px solid var(--log-accent);line-height:1.35}.log-item.system{--log-accent:#7d6047}
   .role-pill{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.07em;background:#593622;color:#ffe2b2}
+  .pcard-top .role-pill{font-size:16px;padding:7px 15px;letter-spacing:.09em;margin-top:9px}
   .role-pill.sheriff{background:#8b5b13}.role-pill.outlaw{background:#7d211f}.role-pill.deputy{background:#315d74}.role-pill.renegade{background:#4d4d4d}
   .gameover-title{font-family:Impact,sans-serif;font-size:44px;letter-spacing:.06em;color:#8e211d;text-align:center}
   .winners{font-size:20px;font-weight:900;text-align:center;margin:10px 0 20px}
@@ -199,6 +232,13 @@
   <div class="paper-card">
     <div class="center"><span class="badge">SOLO &amp; ONLINE TABLES</span></div>
     <div class="brand">BANG!</div>
+    <div id="resumeBar" class="resume-bar" style="display:none">
+      <p id="resumeText"></p>
+      <div class="row">
+        <button id="resumeBtn" class="go" type="button">RESUME</button>
+        <button id="discardBtn" class="drop" type="button">START FRESH</button>
+      </div>
+    </div>
     <div class="subtitle">Dice Table</div>
     <label for="humanName">Your name</label>
     <input id="humanName" maxlength="18" autocomplete="off" placeholder="Enter your name" />
@@ -215,7 +255,7 @@
     </div>
     <div id="paneJoin" style="display:none">
       <label for="joinCode">Room code</label>
-      <input id="joinCode" maxlength="4" autocomplete="off" inputmode="text" placeholder="ABCD" />
+      <input id="joinCode" maxlength="4" autocomplete="off" inputmode="text" placeholder="– – – –" />
     </div>
     <button id="createBtn" class="primary">CREATE GAME</button>
     <div id="setupHint" class="hint">Every empty seat is filled automatically with smart bots. The first bot is always <b>Vicki</b>.</div>
@@ -389,7 +429,13 @@ const BOT_ACTION_DELAY_MS = 3000;
 
 const $ = id => document.getElementById(id);
 const screens = ['setupScreen','lobbyScreen','revealScreen','gameScreen','gameOverScreen'];
-function showScreen(id){ screens.forEach(s => $(s).classList.toggle('active',s===id)); }
+let navReplaying = false;      // true while we are honouring a back gesture
+function showScreen(id){
+  screens.forEach(s => $(s).classList.toggle('active',s===id));
+  if(!navReplaying){
+    try{ history.pushState({screen:id},''); }catch(e){}
+  }
+}
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
 function cryptoInt(max){ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0] % max; }
@@ -505,7 +551,8 @@ function freshState(count,name){
     winners:[],
     threePlayerSuddenDeath:false,
     gatlingActivatedThisTurn:false,
-    slabUsedThisTurn:false
+    slabUsedThisTurn:false,
+    turnStarted:false
   };
 }
 
@@ -557,7 +604,7 @@ $('createBtn').addEventListener('click',async()=>{
   }finally{ btn.disabled=false; }
 });
 
-$('backSetupBtn').addEventListener('click',async()=>{ await leaveRoom(); showScreen('setupScreen'); });
+$('backSetupBtn').addEventListener('click',async()=>{ clearSave(); await leaveRoom(); showScreen('setupScreen'); });
 $('copyCodeBtn').addEventListener('click',async()=>{
   if(!room) return;
   try{ await navigator.clipboard.writeText(room.code); lobbyNote('Room code copied.'); }
@@ -677,6 +724,7 @@ function renderGame(){
     $('tapHint').textContent=(!p.isBot && p.id!==MY_ID && p.alive && !state.gameOver)?`Waiting for ${p.name}…`:'';
   }
   if(netMode==='host') pushState();
+  saveSoon();
 }
 
 function toggleHold(i){
@@ -712,12 +760,12 @@ async function performRoll(indices){
   await sleep(760);
   indices.forEach(i=>$('diceRow').children[i].querySelector('.die').classList.remove('rolling'));
   animating=false;
-  // Arrow faces take effect immediately after every roll.
-  for(const [i,face] of rolledFaces){
-    if(face==='arrow'){
-      await giveArrow(p.id);
-      if(state.gameOver || !p.alive) return;
-    }
+  // Arrow faces take effect immediately after every roll, counted as one batch
+  // so three Arrows read as one message instead of three.
+  const arrowsRolled=rolledFaces.filter(([i,face])=>face==='arrow').length;
+  if(arrowsRolled){
+    await giveArrows(p.id,arrowsRolled);
+    if(state.gameOver || !p.alive) return;
   }
   updateDynamiteLocks(); renderGame();
   if(state.gameOver || !p.alive) return;
@@ -749,13 +797,38 @@ function updateDynamiteLocks(){
 }
 function countFace(face){ return state.dice.filter(f=>f===face).length; }
 
-async function giveArrow(playerId){
+function arrowWord(n){ return n===1?'an arrow':`${n} arrows`; }
+
+// Takes several arrows at once and reports them in a single message. If the
+// pool runs dry partway through, whatever has been taken so far is announced
+// before the attack resolves, then the rest are drawn from the refilled pool.
+async function giveArrows(playerId,count=1){
   const p=getPlayer(playerId); if(!p?.alive) return;
-  if(state.arrowPool<=0) await resolveIndianAttack();
-  p.arrows++; state.arrowPool--; log(`${p.name} takes an arrow.`,p.id,'arrow'); renderGame();
-  await announce(`${p.name} takes an arrow ➶`,false,ACTION_MESSAGE_MS,p.id);
-  if(state.arrowPool===0) await resolveIndianAttack();
+  let taken=0;
+  const flush=async()=>{
+    if(!taken) return;
+    const n=taken; taken=0;
+    log(`${p.name} takes ${arrowWord(n)}.`,p.id,'arrow'); renderGame();
+    await announce(`${p.name} takes ${arrowWord(n)} ➶`,false,ACTION_MESSAGE_MS,p.id);
+  };
+  for(let i=0;i<count;i++){
+    if(!p.alive||state.gameOver) break;
+    if(state.arrowPool<=0){
+      await flush();
+      await resolveIndianAttack();
+      if(!p.alive||state.gameOver) break;
+    }
+    p.arrows++; state.arrowPool--; taken++;
+    if(state.arrowPool===0){
+      await flush();
+      await resolveIndianAttack();
+      if(!p.alive||state.gameOver) break;
+    }
+  }
+  await flush();
+  renderGame();
 }
+async function giveArrow(playerId){ return giveArrows(playerId,1); }
 async function resolveIndianAttack(){
   log('ARROW ATTACK — the pool emptied and everyone resolves their arrows.',null,'system');
   await Promise.all([playArrowStormFx(),announce('ARROW ATTACK!',true,MAJOR_MESSAGE_MS)]);
@@ -938,20 +1011,23 @@ async function endGame(ids,reason){
   $('winnerText').innerHTML=`${escapeHtml(names.join(', ')||'No survivor')}<br><span class="small">${escapeHtml(reason)}</span>`;
   $('finalRoles').innerHTML=state.players.map(p=>`<div class="seat-row"><div><b>${escapeHtml(p.name)}</b><div class="small">${escapeHtml(p.character.name)}</div></div><span class="role-pill ${roleClass(p.role)}">${escapeHtml(p.role)}</span></div>`).join('');
   if(netMode==='host'){ pushStateNow(); netSend('over',{ids,reason}); markRoomFinished(); }
+  clearSave();
   showScreen('gameOverScreen');
 }
-$('newGameBtn').addEventListener('click',async()=>{ await leaveRoom(); state=null; $('diceRow').innerHTML=''; showScreen('setupScreen'); });
+$('newGameBtn').addEventListener('click',async()=>{ clearSave(); await leaveRoom(); state=null; $('diceRow').innerHTML=''; showScreen('setupScreen'); });
 
 function nextTurn(){
   if(!isHost()||state.gameOver) return;
   let idx=state.turnIndex; do{ idx=(idx+1)%state.players.length; }while(!state.players[idx].alive);
-  state.turnIndex=idx; state.dice=['arrow','dynamite','one','two','beer']; state.held=[false,false,false,false,false]; state.locked=[false,false,false,false,false]; state.rollsMade=0; state.resolving=false; state.gatlingActivatedThisTurn=false; state.slabUsedThisTurn=false;
+  state.turnIndex=idx; state.dice=['arrow','dynamite','one','two','beer']; state.held=[false,false,false,false,false]; state.locked=[false,false,false,false,false]; state.rollsMade=0; state.resolving=false; state.gatlingActivatedThisTurn=false; state.slabUsedThisTurn=false; state.turnStarted=false;
   state.maxRolls=charIs(currentPlayer(),'Lucky Duke')?4:3; renderGame(); setTimeout(startTurn,currentPlayer().isBot?BOT_ACTION_DELAY_MS:700);
 }
 async function startTurn(){
   if(!isHost()||state.gameOver) return; const p=currentPlayer(); if(!p.alive){ nextTurn(); return; }
   state.maxRolls=charIs(p,'Lucky Duke')?4:3; renderGame();
-  if(charIs(p,'Sid Ketchum')){
+  const firstTimeThisTurn=!state.turnStarted;
+  state.turnStarted=true;
+  if(firstTimeThisTurn && charIs(p,'Sid Ketchum')){
     const candidates=alivePlayers().map(x=>x.id); let targetId;
     if(p.isBot){ targetId=botChooseBeerTarget(p,candidates); await botPause(); }
     else targetId=await askChoosePlayer(p.id,'Sid Ketchum','At the start of your turn, heal one alive player by 1.',candidates,false);
@@ -1179,8 +1255,24 @@ function closeChoice(){ $('choiceBackdrop').classList.remove('show'); }
 function showPlayerInfo(id){
   const p=getPlayer(id); if(!p) return;
   const role=publicRole(p)||p.id===MY_ID?`<span class="role-pill ${roleClass(p.role)}">${escapeHtml(p.role)}</span>`:'<span class="role-pill">SECRET ROLE</span>';
-  const distanceLine=p.id===MY_ID?'You':(!p.alive?'Eliminated':`Distance from you: ${distanceFromHuman(p.id)}`);
-  $('infoContent').innerHTML=`<h2>${escapeHtml(p.name)} ${p.isBot?'<span class="small">BOT</span>':''}</h2><p>${role}</p><p><b>♥ ${p.hp}/${p.maxHp}</b> &nbsp; <b>➶ ${p.arrows}</b></p><p><b>${escapeHtml(distanceLine)}</b></p><div class="character-panel"><strong>${escapeHtml(p.character.name)}</strong><p style="margin:8px 0 0">${escapeHtml(p.character.desc)}</p></div>${!p.alive?'<p><b>Eliminated</b></p>':''}`;
+  const distanceHtml=p.id===MY_ID
+    ? '<span>This is you</span>'
+    : (!p.alive ? '<span>Out of the game</span>'
+                : `<span>Distance from you</span> <b>${distanceFromHuman(p.id)}</b>`);
+  $('infoContent').innerHTML=`
+    <div class="pcard-top">
+      <div>
+        <div class="pcard-name">${escapeHtml(p.name)}${p.isBot?' <span class="pcard-bot">BOT</span>':''}</div>
+        ${role}
+      </div>
+      <div class="pcard-vitals">
+        <div class="pcard-stat life"><span class="glyph">♥</span><span class="val">${Math.max(0,p.hp)}<span class="of">/${p.maxHp}</span></span></div>
+        <div class="pcard-stat arrows"><span class="glyph">➶</span><span class="val">${p.arrows}</span></div>
+      </div>
+    </div>
+    <div class="pcard-distance">${distanceHtml}</div>
+    <div class="character-panel"><strong>${escapeHtml(p.character.name)}</strong><p style="margin:8px 0 0;font-size:16px">${escapeHtml(p.character.desc)}</p></div>
+    ${!p.alive?'<div class="pcard-dead">Eliminated</div>':''}`;
   $('infoBackdrop').classList.add('show');
 }
 $('closeInfoBtn').addEventListener('click',()=>$('infoBackdrop').classList.remove('show'));
@@ -1494,6 +1586,22 @@ function onNetMessage(m){
       handleGuestInput(m);
       break;
 
+    case 'resync': {
+      // A guest reloaded and needs the table back.
+      if(netMode!=='host'||!state||!state.players.length) return;
+      const who=getPlayer(m.from);
+      netSend('sync',{to:m.from,role:who?who.role:null,snap:snapshot()});
+      break;
+    }
+
+    case 'sync':
+      if(netMode!=='guest') return;
+      if(m.role) myRole=m.role;
+      applySnapshot(m.snap);
+      saveNow();
+      if(!$('gameScreen').classList.contains('active')){ showScreen('gameScreen'); renderGame(); }
+      break;
+
     case 'over':
       if(netMode!=='guest') return;
       showEndScreen(m.ids,m.reason);
@@ -1576,6 +1684,7 @@ async function handleRemoteAsk(m){
 // ---------- shared end screen ----------
 
 function showEndScreen(ids,reason){
+  clearSave();
   const names=(ids||[]).map(id=>getPlayer(id)?.name).filter(Boolean);
   $('winnerText').innerHTML=`${escapeHtml(names.join(', ')||'No survivor')}<br><span class="small">${escapeHtml(reason||'')}</span>`;
   $('finalRoles').innerHTML=state.players.map(p=>`<div class="seat-row"><div><b>${escapeHtml(p.name)}</b><div class="small">${escapeHtml(p.character.name)}</div></div><span class="role-pill ${roleClass(p.role)}">${escapeHtml(p.role)}</span></div>`).join('');
@@ -1586,6 +1695,170 @@ function showEndScreen(ids,reason){
 window.addEventListener('pagehide',()=>{ if(netMode==='host'&&room) netSend('closed',{}); });
 
 setSetupMode('solo');
+
+
+// ==================================================================
+//  SURVIVING A RELOAD, AND THE PHONE'S BACK BUTTON
+// ==================================================================
+
+const SAVE_KEY = 'bangDiceSave';
+const SAVE_MAX_AGE_MS = 6*60*60*1000;      // six hours
+let saveTimer = null;
+
+function saveSoon(){ clearTimeout(saveTimer); saveTimer=setTimeout(saveNow,400); }
+function saveNow(){
+  clearTimeout(saveTimer);
+  if(!state||!state.players||!state.players.length||state.gameOver){ return; }
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      at:Date.now(), netMode, MY_ID, mySeat, myRole, room, state
+    }));
+  }catch(e){ /* private mode, quota, whatever — the game still plays */ }
+}
+function clearSave(){ clearTimeout(saveTimer); try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+function readSave(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw) return null;
+    const save=JSON.parse(raw);
+    if(!save||!save.state||!save.state.players||!save.state.players.length) return null;
+    if(Date.now()-save.at > SAVE_MAX_AGE_MS) return null;
+    if(save.state.gameOver) return null;
+    return save;
+  }catch(e){ return null; }
+}
+
+function offerResume(){
+  const save=readSave();
+  if(!save){ $('resumeBar').style.display='none'; return; }
+  const mins=Math.max(1,Math.round((Date.now()-save.at)/60000));
+  const where=save.netMode==='solo'?'solo game':(save.netMode==='host'?`online table ${save.room?save.room.code:''}`:`online table ${save.room?save.room.code:''}`);
+  const turn=save.state.players[save.state.turnIndex];
+  $('resumeText').textContent=`You have a ${where} still going from ${mins} minute${mins===1?'':'s'} ago — ${turn?turn.name+"'s turn":'in progress'}.`;
+  $('resumeBar').style.display='block';
+}
+
+$('discardBtn').addEventListener('click',()=>{ clearSave(); $('resumeBar').style.display='none'; });
+$('resumeBtn').addEventListener('click',()=>resumeGame());
+
+async function resumeGame(){
+  const save=readSave();
+  if(!save){ $('resumeBar').style.display='none'; return; }
+  $('resumeBtn').disabled=true;
+
+  netMode=save.netMode||'solo';
+  MY_ID=save.MY_ID||'p0';
+  mySeat=save.mySeat||0;
+  myRole=save.myRole||null;
+  room=save.room||null;
+  state=save.state;
+  if(!state.seats) state.seats=[];
+  if(typeof state.turnStarted!=='boolean') state.turnStarted=true;
+
+  // A turn that was halfway through resolving cannot be picked back up
+  // safely, so that turn is abandoned and play moves on.
+  const wasResolving=state.resolving;
+  state.resolving=false;
+
+  try{
+    if(isOnline() && room && supabaseReady()){
+      await openChannel(room.code);
+      if(netMode==='guest'){
+        // Our seat row is still in the table; ask the host for the live board.
+        netSend('resync',{});
+      }
+    } else if(isOnline()){
+      netMode='solo';   // no backend reachable, finish the table against bots
+    }
+  }catch(e){
+    console.warn('could not rejoin the room',e);
+    lobbyNote&&lobbyNote('');
+    netMode='solo';
+  }
+
+  $('resumeBar').style.display='none';
+  $('resumeBtn').disabled=false;
+  showScreen('gameScreen');
+  renderGame();
+
+  if(isHost()){
+    pushStateNow&&pushStateNow();
+    await sleep(500);
+    if(wasResolving){
+      await announce('Picking the game back up.',false,ACTION_MESSAGE_MS);
+      nextTurn();
+    } else {
+      const p=currentPlayer();
+      if(p&&p.isBot&&p.alive) startTurn();
+      else if(p&&!p.alive) nextTurn();
+    }
+  }
+}
+
+// ---------- the phone's back button ----------
+// Every screen change pushes a history entry, so Android's back gesture walks
+// the game instead of closing it. Back first shuts an open panel, and it never
+// drops you out of a live table without asking.
+
+function anyModalOpen(){
+  return $('choiceBackdrop').classList.contains('show') || $('infoBackdrop').classList.contains('show');
+}
+function closeAnyModal(){
+  $('infoBackdrop').classList.remove('show');
+  // A choice modal is the engine waiting on an answer, so it stays put.
+  return !$('choiceBackdrop').classList.contains('show');
+}
+function currentScreen(){
+  return screens.find(id=>$(id).classList.contains('active'))||'setupScreen';
+}
+function repushCurrent(){
+  try{ history.pushState({screen:currentScreen()},''); }catch(e){}
+}
+
+window.addEventListener('popstate',async ev=>{
+  const here=currentScreen();
+
+  // 1. an open panel closes first
+  if(anyModalOpen()){
+    closeAnyModal();
+    repushCurrent();
+    return;
+  }
+
+  // 2. never fall out of a live table by accident
+  if(here==='gameScreen' && state && !state.gameOver){
+    const leave=window.confirm('Leave the table? Your game is saved, so you can resume it from the front page.');
+    if(!leave){ repushCurrent(); return; }
+    saveNow();
+    await leaveRoom();
+    navReplaying=true; showScreen('setupScreen'); navReplaying=false;
+    repushCurrent();
+    offerResume();
+    return;
+  }
+
+  // 3. otherwise walk back a screen
+  const target=(ev.state&&ev.state.screen)||'setupScreen';
+  navReplaying=true;
+  if(target==='gameScreen'&&(!state||!state.players.length)) showScreen('setupScreen');
+  else showScreen(target);
+  navReplaying=false;
+  if(currentScreen()==='setupScreen') offerResume();
+});
+
+try{ history.replaceState({screen:'setupScreen'},''); }catch(e){}
+
+// A reload while a game is live is almost always an accident.
+window.addEventListener('beforeunload',ev=>{
+  if(state && state.players && state.players.length && !state.gameOver){
+    saveNow();
+    ev.preventDefault();
+    ev.returnValue='';
+    return '';
+  }
+});
+
+offerResume();
 
 })();
 </script>
