@@ -127,19 +127,23 @@
   .shot-arrow,.storm-arrow{position:absolute;width:112vw;height:clamp(14px,3.2vw,22px);border-radius:999px;background:linear-gradient(90deg,#5a301a 0 82%,#e9c67f 82% 86%,#6f3c1d 86% 100%);filter:drop-shadow(0 7px 5px rgba(0,0,0,.55));transform-origin:center;opacity:0}
   .shot-arrow:before,.storm-arrow:before{content:"";position:absolute;right:-42px;top:50%;transform:translateY(-50%);border-left:54px solid #e2bc72;border-top:29px solid transparent;border-bottom:29px solid transparent;filter:drop-shadow(0 5px 3px rgba(0,0,0,.35))}
   .shot-arrow:after,.storm-arrow:after{content:"";position:absolute;left:-26px;top:50%;transform:translateY(-50%);width:40px;height:40px;background:linear-gradient(45deg,transparent 43%,#bd8745 44% 56%,transparent 57%),linear-gradient(-45deg,transparent 43%,#bd8745 44% 56%,transparent 57%)}
-  .shot-arrow.range1{left:calc(100vw - 34px);top:50%;transform:translateY(-50%) rotate(180deg);animation:shotRightToLeft 4s linear forwards}
-  .shot-arrow.range2{left:50%;top:calc(100vh - 26px);transform:translateX(-50%) rotate(-90deg);animation:shotBottomToTop 4s linear forwards}
+  /* Thin light outline traced around the whole big-arrow silhouette (shaft + head + fletching). */
+  .shot-arrow{filter:
+    drop-shadow(2px 0 0 #ffeec6) drop-shadow(-2px 0 0 #ffeec6)
+    drop-shadow(0 2px 0 #ffeec6) drop-shadow(0 -2px 0 #ffeec6)
+    drop-shadow(0 7px 5px rgba(0,0,0,.55))}
+  .shot-arrow:before,.shot-arrow:after{filter:none}
+  .shot-arrow.range1{left:calc(100vw - 34px);top:50%;transform:translateY(-50%) rotate(180deg);animation:shotRightToLeft 2.5s linear forwards}
+  .shot-arrow.range2{left:50%;top:calc(100vh - 26px);transform:translateX(-50%) rotate(-90deg);animation:shotBottomToTop 3.5s linear forwards}
   @keyframes shotRightToLeft{
     0%{opacity:0;transform:translateY(-50%) rotate(180deg)}
-    25%{opacity:1;transform:translateY(-50%) rotate(180deg)}
-    99%{opacity:1;transform:translate(-125vw,-50%) rotate(180deg)}
-    100%{opacity:0;transform:translate(-145vw,-50%) rotate(180deg)}
+    10%{opacity:1;transform:translateY(-50%) rotate(180deg)}
+    100%{opacity:1;transform:translate(-240vw,-50%) rotate(180deg)}
   }
   @keyframes shotBottomToTop{
     0%{opacity:0;transform:translateX(-50%) rotate(-90deg)}
-    25%{opacity:1;transform:translateX(-50%) rotate(-90deg)}
-    99%{opacity:1;transform:translate(-50%,-125vh) rotate(-90deg)}
-    100%{opacity:0;transform:translate(-50%,-145vh) rotate(-90deg)}
+    10%{opacity:1;transform:translateX(-50%) rotate(-90deg)}
+    100%{opacity:1;transform:translate(-50%,calc(-105vh - 80vw)) rotate(-90deg)}
   }
   .gatling-flash{position:absolute;left:50%;top:52%;width:46px;height:46px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff4c9 0 12%,#f4b34d 13% 31%,rgba(214,56,31,.8) 32% 48%,transparent 50%);animation:gatFlash .23s steps(2,end) 6}
   .gatling-streak{position:absolute;left:50%;top:52%;width:62vw;max-width:520px;height:4px;background:linear-gradient(90deg,rgba(255,225,156,0),#ffd475 34%,#fff3c0 52%,#d9772a 78%,rgba(255,225,156,0));transform-origin:left center;opacity:0;animation:gatStreak .72s ease-out forwards}
@@ -356,10 +360,11 @@ function clearCombatFx(){ const fx=fxLayer(); fx.innerHTML=''; fx.classList.remo
 async function playShotFx(attackerId,targetId,distance=1){
   const fx=fxLayer(); fx.innerHTML=''; fx.classList.add('show');
   const a=document.createElement('div');
-  a.className='shot-arrow '+(Number(distance)>=2?'range2':'range1');
+  const vertical=Number(distance)>=2;
+  a.className='shot-arrow '+(vertical?'range2':'range1');
   fx.appendChild(a);
-  // One second reveal, then the giant arrow crosses, sticks into the far edge, and fades.
-  await sleep(4000);
+  // Brief reveal, then the giant arrow flies completely off the screen: 2.5s across, 3.5s upward.
+  await sleep(vertical?3500:2500);
   clearCombatFx();
 }
 async function playGatlingFx(){
