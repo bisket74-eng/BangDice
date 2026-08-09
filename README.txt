@@ -3,9 +3,40 @@ BANG! DICE — Local Bot Edition (installable web app)
 
 WHAT'S IN HERE
   index.html      the whole game (single file, no build step)
+  supabase.sql    run this once in the Supabase SQL editor
   manifest.json   app name, colors, icons — what makes it installable
   sw.js           service worker, caches everything for offline play
   icons/          two round icon designs, each in several sizes
+
+TURNING ON MULTIPLAYER
+  1. Supabase dashboard > SQL Editor > New query. Paste all of
+     supabase.sql and hit Run. It creates bang_rooms and bang_players,
+     opens them to anon, and adds them to the realtime publication.
+  2. Nothing else — your project URL and publishable key are already
+     filled in near the top of the script in index.html:
+
+       https://ghnuahsovbpyzrjvbylp.supabase.co
+
+     If you ever move the game to a different project, those are the
+     only two lines to change.
+
+  HOW A GAME RUNS
+    The host's phone runs the game engine — the same code as solo play,
+    untouched. It deals roles, rolls the dice, runs the bots, and pushes
+    a snapshot of the table to everyone after each change. Guests draw
+    that snapshot and send their taps back. Nothing is ever decided
+    twice, so the rules cannot drift between phones.
+
+    Empty seats still become bots at start, so a 6-player table with
+    three humans works fine.
+
+    One honest caveat: secret roles travel over a shared realtime
+    channel addressed to one player. The app hides other people's roles,
+    but someone determined enough to open the browser console could read
+    a message meant for another seat. It is a kitchen-table game, not a
+    tournament server.
+
+    If the host closes the app, the table ends. Guests get a notice.
 
 THE TWO ICONS
   icon-bang-*.png   the badge: gold sheriff star over a red BANG! banner

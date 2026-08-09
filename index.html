@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#24140f" />
 <title>BANG! Dice — Local Bot Edition</title>
 <link rel="manifest" href="manifest.json" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-bang-192.png" />
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-bang-512.png" />
 <link rel="apple-touch-icon" href="icons/icon-bang-180.png" />
@@ -173,6 +174,15 @@
   .rules-face{display:grid;grid-template-columns:26px 1fr;gap:6px 9px;align-items:start;margin:0 0 8px}
   .rules-face b{font-size:17px;text-align:center;line-height:1.15}
   .rules-note{background:rgba(255,255,255,.3);border:1px solid rgba(86,44,18,.28);border-radius:12px;padding:9px 11px;margin:10px 0}
+  .mode-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:14px 0 6px}
+  .mode-tabs .tab{min-height:46px;padding:6px 4px;font-size:12px;font-weight:900;letter-spacing:.04em;border:1px solid #8b5a2c;border-radius:13px;background:rgba(255,255,255,.28);color:#4a2a15}
+  .mode-tabs .tab.active{background:#7d1f1a;border-color:#5d1512;color:#ffe9c4;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
+  .room-code{font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif;font-size:46px;letter-spacing:.22em;text-align:center;color:#7d1f1a;text-shadow:0 2px 0 rgba(255,255,255,.5);margin:6px 0 2px;padding-left:.22em}
+  .room-code-label{text-align:center;font-size:11px;letter-spacing:.16em;font-weight:900;opacity:.7}
+  #joinCode{text-transform:uppercase;letter-spacing:.3em;text-align:center;font-weight:900;font-size:24px}
+  .seat-row.mine{outline:2px solid #7d1f1a;outline-offset:-2px}
+  .conn-note{font-size:12px;text-align:center;margin-top:10px;opacity:.75;min-height:16px}
+  .conn-note.bad{color:#7d1f1a;opacity:1;font-weight:800}
   .log-list{display:grid;gap:8px;font-size:14px}.log-item{--log-accent:#8b5a2c;padding:10px 11px 10px 13px;background:linear-gradient(90deg,color-mix(in srgb,var(--log-accent) 18%,rgba(255,255,255,.24)),rgba(255,255,255,.16));border-radius:11px;border:1px solid color-mix(in srgb,var(--log-accent) 36%,rgba(80,40,16,.17));border-left:5px solid var(--log-accent);line-height:1.35}.log-item.system{--log-accent:#7d6047}
   .role-pill{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.07em;background:#593622;color:#ffe2b2}
   .role-pill.sheriff{background:#8b5b13}.role-pill.outlaw{background:#7d211f}.role-pill.deputy{background:#315d74}.role-pill.renegade{background:#4d4d4d}
@@ -187,28 +197,46 @@
 
 <section id="setupScreen" class="screen active">
   <div class="paper-card">
-    <div class="center"><span class="badge">LOCAL BOT EDITION • NO SUPABASE YET</span></div>
+    <div class="center"><span class="badge">SOLO &amp; ONLINE TABLES</span></div>
     <div class="brand">BANG!</div>
     <div class="subtitle">Dice Table</div>
     <label for="humanName">Your name</label>
     <input id="humanName" maxlength="18" autocomplete="off" placeholder="Enter your name" />
-    <label for="playerCount">Total players</label>
-    <select id="playerCount">
-      <option value="3">3 players</option><option value="4">4 players</option><option value="5" selected>5 players</option><option value="6">6 players</option><option value="7">7 players</option><option value="8">8 players</option>
-    </select>
+    <div class="mode-tabs">
+      <button id="tabSolo" class="tab active" type="button">SOLO<br>VS BOTS</button>
+      <button id="tabHost" class="tab" type="button">HOST<br>ONLINE</button>
+      <button id="tabJoin" class="tab" type="button">JOIN<br>ONLINE</button>
+    </div>
+    <div id="paneSeats">
+      <label for="playerCount">Total players</label>
+      <select id="playerCount">
+        <option value="3">3 players</option><option value="4">4 players</option><option value="5" selected>5 players</option><option value="6">6 players</option><option value="7">7 players</option><option value="8">8 players</option>
+      </select>
+    </div>
+    <div id="paneJoin" style="display:none">
+      <label for="joinCode">Room code</label>
+      <input id="joinCode" maxlength="4" autocomplete="off" inputmode="text" placeholder="ABCD" />
+    </div>
     <button id="createBtn" class="primary">CREATE GAME</button>
-    <div class="hint">For now, you are the only human. When you start, every empty seat is filled automatically with smart bots. The first bot is always <b>Vicki</b>.</div>
+    <div id="setupHint" class="hint">Every empty seat is filled automatically with smart bots. The first bot is always <b>Vicki</b>.</div>
+    <div id="setupNote" class="conn-note"></div>
   </div>
 </section>
 
 <section id="lobbyScreen" class="screen">
   <div class="paper-card">
-    <div class="center"><span class="badge">LOCAL ROOM • FUTURE MULTIPLAYER READY</span></div>
+    <div class="center"><span class="badge" id="lobbyBadge">LOCAL ROOM</span></div>
+    <div id="roomCodeBox" style="display:none">
+      <div class="room-code-label">ROOM CODE</div>
+      <div id="roomCode" class="room-code"></div>
+      <button id="copyCodeBtn" class="secondary" style="width:100%">COPY INVITE CODE</button>
+    </div>
     <h2 class="center" style="margin:14px 0 4px">Table Lobby</h2>
     <p id="lobbyCaption" class="center small"></p>
     <div id="lobbyList" class="lobby-list"></div>
     <button id="startBtn" class="primary">START GAME</button>
-    <button id="backSetupBtn" class="secondary" style="width:100%;margin-top:12px">BACK</button>
+    <div id="lobbyNote" class="conn-note"></div>
+    <button id="backSetupBtn" class="secondary" style="width:100%;margin-top:12px">LEAVE</button>
   </div>
 </section>
 
@@ -324,6 +352,34 @@ const CHARACTERS = [
 
 let state = null;
 let pendingChoiceResolve = null;
+
+// ---------- MULTIPLAYER GLOBALS ----------
+// Paste your project values here. Leaving them blank keeps solo play working
+// and simply disables the two online buttons.
+const SUPABASE_URL = 'https://ghnuahsovbpyzrjvbylp.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_1Z7ddDl3qiL-8LRLhtML8Q_EOyJs6E2';
+
+let sb = null;                 // supabase client
+let netMode = 'solo';          // 'solo' | 'host' | 'guest'
+let MY_ID = 'p0';              // which seat this device controls
+let mySeat = 0;
+let myRole = null;             // this device's secret role, delivered privately
+let room = null;               // {code, playerCount, status}
+let chan = null;               // realtime broadcast channel
+let roster = [];               // seat rows from the database
+let setupMode = 'solo';        // which setup tab is selected
+const pendingAsks = {};        // requestId -> resolver, host side
+let statePushTimer = null;
+let guestWaiting = false;      // a tap has been sent to the host, awaiting the authoritative reply
+let guestWaitTimer = null;
+const CLIENT_ID = (() => {
+  let v = null;
+  try { v = localStorage.getItem('bangClientId'); } catch(e){}
+  if(!v){ v = Math.random().toString(36).slice(2) + Date.now().toString(36); try{ localStorage.setItem('bangClientId', v); }catch(e){} }
+  return v;
+})();
+const isHost = () => netMode === 'host' || netMode === 'solo';
+const isOnline = () => netMode === 'host' || netMode === 'guest';
 let animating = false;
 let toastTimer = null;
 const ACTION_MESSAGE_MS = 3000;
@@ -363,6 +419,10 @@ function log(msg,actorId=null,kind='action'){
   state.log = state.log.slice(0,80);
 }
 async function announce(msg,big=false,ms=ACTION_MESSAGE_MS,actorId=null){
+  if(netMode==='host') netSend('fx',{kind:'announce',args:[msg,big,ms,actorId]});
+  return announceLocal(msg,big,ms,actorId);
+}
+async function announceLocal(msg,big=false,ms=ACTION_MESSAGE_MS,actorId=null){
   clearTimeout(toastTimer);
   const t=$('toast');
   t.textContent=msg;
@@ -375,6 +435,10 @@ async function announce(msg,big=false,ms=ACTION_MESSAGE_MS,actorId=null){
 function fxLayer(){ return $('combatFx'); }
 function clearCombatFx(){ const fx=fxLayer(); fx.innerHTML=''; fx.classList.remove('show'); }
 async function playShotFx(attackerId,targetId,distance=1){
+  if(netMode==='host') netSend('fx',{kind:'shot',args:[attackerId,targetId,distance]});
+  return playShotFxLocal(attackerId,targetId,distance);
+}
+async function playShotFxLocal(attackerId,targetId,distance=1){
   const fx=fxLayer(); fx.innerHTML=''; fx.classList.add('show');
   const a=document.createElement('div');
   const vertical=Number(distance)>=2;
@@ -385,6 +449,10 @@ async function playShotFx(attackerId,targetId,distance=1){
   clearCombatFx();
 }
 async function playGatlingFx(){
+  if(netMode==='host') netSend('fx',{kind:'gatling',args:[]});
+  return playGatlingFxLocal();
+}
+async function playGatlingFxLocal(){
   const fx=fxLayer(); fx.innerHTML=''; fx.classList.add('show');
   const flash=document.createElement('div'); flash.className='gatling-flash'; fx.appendChild(flash);
   for(let i=0;i<12;i++){
@@ -395,6 +463,10 @@ async function playGatlingFx(){
   await sleep(1250); document.querySelector('.table-stage')?.classList.remove('fx-shake'); clearCombatFx();
 }
 async function playArrowStormFx(){
+  if(netMode==='host') netSend('fx',{kind:'storm',args:[]});
+  return playArrowStormFxLocal();
+}
+async function playArrowStormFxLocal(){
   const fx=fxLayer(); fx.innerHTML=''; fx.classList.add('show');
   const vw=Math.max(innerWidth,360), vh=Math.max(innerHeight,640);
   const total=24;
@@ -413,15 +485,12 @@ async function playArrowStormFx(){
   await sleep(2200); document.querySelector('.table-stage')?.classList.remove('fx-shake'); clearCombatFx();
 }
 
-$('createBtn').addEventListener('click',()=>{
-  const name=$('humanName').value.trim();
-  if(!name){ $('humanName').focus(); $('humanName').style.borderColor='#b72721'; return; }
-  $('humanName').style.borderColor='';
-  const count=Number($('playerCount').value);
-  state={
+function freshState(count,name){
+  return {
     playerCount:count,
     hostName:name,
-    players:[{id:'human',name,isBot:false}],
+    seats:[],
+    players:[],
     arrowPool:9,
     turnIndex:0,
     dice:['arrow','dynamite','one','two','beer'],
@@ -438,26 +507,93 @@ $('createBtn').addEventListener('click',()=>{
     gatlingActivatedThisTurn:false,
     slabUsedThisTurn:false
   };
-  renderLobby(); showScreen('lobbyScreen');
-});
-$('backSetupBtn').addEventListener('click',()=>showScreen('setupScreen'));
-
-function renderLobby(){
-  $('lobbyCaption').textContent=`${state.playerCount}-player game • ${state.playerCount-1} empty seat${state.playerCount-1===1?'':'s'} will become bots when you start.`;
-  const box=$('lobbyList'); box.innerHTML='';
-  for(let i=0;i<state.playerCount;i++){
-    const row=document.createElement('div'); row.className='seat-row';
-    const occupied=i===0;
-    row.innerHTML=`<div class="seat-left"><span class="seat-num">${i+1}</span><span>${occupied?escapeHtml(state.hostName):'Open seat'}</span></div><span class="bot-on-start">${occupied?'HOST':'BOT ON START'}</span>`;
-    box.appendChild(row);
-  }
 }
 
-$('startBtn').addEventListener('click',()=>setupGame());
+function setSetupMode(m){
+  setupMode=m;
+  $('tabSolo').classList.toggle('active',m==='solo');
+  $('tabHost').classList.toggle('active',m==='host');
+  $('tabJoin').classList.toggle('active',m==='join');
+  $('paneSeats').style.display=(m==='join')?'none':'block';
+  $('paneJoin').style.display=(m==='join')?'block':'none';
+  $('createBtn').textContent=m==='solo'?'CREATE GAME':m==='host'?'CREATE ONLINE ROOM':'JOIN ROOM';
+  $('setupHint').innerHTML=m==='solo'
+    ? 'Every empty seat is filled automatically with smart bots. The first bot is always <b>Vicki</b>.'
+    : m==='host'
+      ? 'You get a four letter room code to share. Friends join on their own phones, and any seat still empty when you start becomes a bot.'
+      : 'Type the code the host gave you. You will drop into the first free seat at their table.';
+  $('setupNote').textContent='';
+  $('setupNote').classList.remove('bad');
+}
+$('tabSolo').addEventListener('click',()=>setSetupMode('solo'));
+$('tabHost').addEventListener('click',()=>setSetupMode('host'));
+$('tabJoin').addEventListener('click',()=>setSetupMode('join'));
+
+function setupNote(msg,bad=false){ $('setupNote').textContent=msg||''; $('setupNote').classList.toggle('bad',!!bad); }
+function lobbyNote(msg,bad=false){ $('lobbyNote').textContent=msg||''; $('lobbyNote').classList.toggle('bad',!!bad); }
+
+$('createBtn').addEventListener('click',async()=>{
+  const name=$('humanName').value.trim();
+  if(!name){ $('humanName').focus(); $('humanName').style.borderColor='#b72721'; return; }
+  $('humanName').style.borderColor='';
+  const btn=$('createBtn');
+
+  if(setupMode==='solo'){
+    netMode='solo'; MY_ID='p0'; mySeat=0; myRole=null; room=null;
+    state=freshState(Number($('playerCount').value),name);
+    state.seats=[{seat:0,name,isHost:true}];
+    renderLobby(); showScreen('lobbyScreen'); return;
+  }
+
+  if(!supabaseReady()){ setupNote('Add your Supabase URL and anon key near the top of this file to play online.',true); return; }
+  btn.disabled=true;
+  try{
+    if(setupMode==='host') await hostCreateRoom(name,Number($('playerCount').value));
+    else await guestJoinRoom(name,$('joinCode').value.trim().toUpperCase());
+    renderLobby(); showScreen('lobbyScreen');
+  }catch(err){
+    console.error(err);
+    setupNote(err.message||'Could not reach the table. Check your connection and try again.',true);
+  }finally{ btn.disabled=false; }
+});
+
+$('backSetupBtn').addEventListener('click',async()=>{ await leaveRoom(); showScreen('setupScreen'); });
+$('copyCodeBtn').addEventListener('click',async()=>{
+  if(!room) return;
+  try{ await navigator.clipboard.writeText(room.code); lobbyNote('Room code copied.'); }
+  catch(e){ lobbyNote('Copy it by hand: '+room.code); }
+});
+
+function renderLobby(){
+  const seats=state.seats||[];
+  const open=state.playerCount-seats.length;
+  $('lobbyBadge').textContent=netMode==='solo'?'SOLO ROOM':netMode==='host'?'ONLINE ROOM • YOU ARE HOST':'ONLINE ROOM • GUEST';
+  $('roomCodeBox').style.display=isOnline()?'block':'none';
+  if(room) $('roomCode').textContent=room.code;
+  $('lobbyCaption').textContent=`${state.playerCount}-player game • ${open} empty seat${open===1?'':'s'} will become bot${open===1?'':'s'} when the game starts.`;
+  const box=$('lobbyList'); box.innerHTML='';
+  for(let i=0;i<state.playerCount;i++){
+    const seat=seats.find(x=>x.seat===i);
+    const row=document.createElement('div');
+    row.className='seat-row'+(seat&&seat.seat===mySeat&&isOnline()?' mine':'');
+    const label=seat?escapeHtml(seat.name):'Open seat';
+    const tag=seat?(seat.isHost?'HOST':(seat.seat===mySeat&&isOnline()?'YOU':'JOINED')):'BOT ON START';
+    row.innerHTML=`<div class="seat-left"><span class="seat-num">${i+1}</span><span>${label}</span></div><span class="bot-on-start">${tag}</span>`;
+    box.appendChild(row);
+  }
+  $('startBtn').style.display=isHost()?'block':'none';
+  if(netMode==='guest') lobbyNote('Waiting for the host to start the game…');
+}
+
+$('startBtn').addEventListener('click',()=>{ if(isHost()) setupGame(); });
 function setupGame(){
-  while(state.players.length<state.playerCount){
-    const botIndex=state.players.filter(p=>p.isBot).length;
-    state.players.push({id:'bot'+botIndex,name:BOT_NAMES[botIndex]||`Bot ${botIndex+1}`,isBot:true});
+  const seats=state.seats||[];
+  state.players=[];
+  let botIndex=0;
+  for(let i=0;i<state.playerCount;i++){
+    const seat=seats.find(x=>x.seat===i);
+    if(seat) state.players.push({id:'p'+i,name:seat.name,isBot:false});
+    else { state.players.push({id:'p'+i,name:BOT_NAMES[botIndex]||`Bot ${botIndex+1}`,isBot:true}); botIndex++; }
   }
   let roles;
   if(state.playerCount===3){ roles=shuffle(['Deputy','Outlaw','Renegade']); }
@@ -473,7 +609,12 @@ function setupGame(){
   } else {
     state.turnIndex=state.players.findIndex(p=>p.role==='Sheriff');
   }
-  const me=getPlayer('human');
+  if(netMode==='host') netStartGame();
+  showReveal();
+}
+function showReveal(){
+  const me=getPlayer(MY_ID);
+  if(!me) return;
   $('roleCover').style.display='grid'; $('roleReveal').style.display='none'; $('enterTableBtn').disabled=true;
   $('humanRole').textContent=me.role.toUpperCase();
   $('roleGoal').textContent=state.playerCount===3 ? threePlayerGoal(me.role) : ROLE_GOALS[me.role];
@@ -482,7 +623,12 @@ function setupGame(){
 }
 function threePlayerGoal(role){ return role==='Deputy'?'Eliminate the Renegade yourself.':role==='Renegade'?'Eliminate the Outlaw yourself.':'Eliminate the Deputy yourself.'; }
 $('roleCover').addEventListener('click',()=>{ $('roleCover').style.display='none'; $('roleReveal').style.display='block'; $('enterTableBtn').disabled=false; });
-$('enterTableBtn').addEventListener('click',async()=>{ showScreen('gameScreen'); renderGame(); await sleep(350); startTurn(); });
+$('enterTableBtn').addEventListener('click',async()=>{
+  if(!state||!state.players.length) return;
+  showScreen('gameScreen'); renderGame();
+  if(!isHost()) return;                 // guests just watch until the host drives play
+  await sleep(350); startTurn();
+});
 
 function buildDie(index){
   const wrap=document.createElement('div'); wrap.className='die-wrap'; wrap.dataset.index=index;
@@ -510,7 +656,7 @@ function renderGame(){
   state.players.forEach(pl=>{
     const chip=document.createElement('button'); chip.className='player-chip'+(pl.id===p.id?' active':'')+(!pl.alive?' dead':''); chip.type='button'; chip.style.setProperty('--player-accent',playerTone(pl.id));
     const dist=distanceFromHuman(pl.id);
-    const distText=pl.id==='human'?'YOU':(!pl.alive?'OUT':`DISTANCE ${dist}`);
+    const distText=pl.id===MY_ID?'YOU':(!pl.alive?'OUT':`DISTANCE ${dist}`);
     chip.innerHTML=`${pl.role==='Sheriff'?'<span class="sheriff-star">★</span>':''}<div class="pname">${escapeHtml(pl.name)}${pl.isBot?' · BOT':''}</div><div class="stats">♥ ${Math.max(0,pl.hp)}/${pl.maxHp} &nbsp;&nbsp; ➶ ${pl.arrows}</div><div class="distance">${distText}</div><div class="char">${escapeHtml(pl.character.name)}${publicRole(pl)?' · '+escapeHtml(pl.role):''}</div>`;
     chip.addEventListener('click',()=>showPlayerInfo(pl.id)); strip.appendChild(chip);
   });
@@ -518,39 +664,50 @@ function renderGame(){
     const wrap=$('diceRow').children[i]; wrap.classList.toggle('held',!!state.held[i]&&!state.locked[i]); wrap.classList.toggle('locked',!!state.locked[i]);
     const die=wrap.querySelector('.die'); die.style.transform=ROTATION[state.dice[i]];
   }
-  const humanTurn=!p.isBot && p.alive && !state.gameOver;
+  const humanTurn=!p.isBot && p.alive && !state.gameOver && p.id===MY_ID;
   $('rollBtn').style.display=humanTurn?'block':'none';
   $('botThinking').style.display=p.isBot?'flex':'none';
   if(humanTurn){
-    $('rollBtn').disabled=animating||state.resolving;
+    $('rollBtn').disabled=animating||state.resolving||(netMode==='guest'&&guestWaiting);
     $('rollBtn').textContent=state.rollsMade===0?'ROLL DICE':'ROLL AGAIN';
     $('resolveBtn').style.display=(state.rollsMade>0 && state.rollsMade<state.maxRolls && !state.resolving)?'block':'none';
     $('tapHint').textContent=state.rollsMade>0?'Tap dice to hold or release them. Dynamite locks automatically.':'';
   } else {
-    $('resolveBtn').style.display='none'; $('tapHint').textContent=p.isBot?'':'';
+    $('resolveBtn').style.display='none';
+    $('tapHint').textContent=(!p.isBot && p.id!==MY_ID && p.alive && !state.gameOver)?`Waiting for ${p.name}…`:'';
   }
+  if(netMode==='host') pushState();
 }
 
 function toggleHold(i){
   if(animating||state.resolving) return;
   const p=currentPlayer(); if(p.isBot||state.rollsMade===0||state.rollsMade>=state.maxRolls) return;
+  if(p.id!==MY_ID) return;
   if(state.locked[i]) return;
+  if(netMode==='guest'){ state.held[i]=!state.held[i]; renderGame(); netSend('input',{action:'hold',index:i}); return; }
   state.held[i]=!state.held[i]; renderGame();
 }
 $('rollBtn').addEventListener('click',async()=>{
   if(animating||state.resolving) return;
-  const p=currentPlayer(); if(p.isBot) return;
+  const p=currentPlayer(); if(p.isBot||p.id!==MY_ID) return;
+  if(netMode==='guest'){ markGuestWaiting(); $('rollBtn').disabled=true; netSend('input',{action:'roll'}); return; }
   const indices=state.rollsMade===0?[0,1,2,3,4]:[0,1,2,3,4].filter(i=>!state.held[i]&&!state.locked[i]);
   if(!indices.length){ await resolveTurn(); return; }
   await performRoll(indices);
 });
-$('resolveBtn').addEventListener('click',()=>resolveTurn());
+$('resolveBtn').addEventListener('click',()=>{
+  const p=currentPlayer(); if(!p||p.id!==MY_ID) return;
+  if(netMode==='guest'){ markGuestWaiting(); $('resolveBtn').disabled=true; netSend('input',{action:'resolve'}); return; }
+  resolveTurn();
+});
 
 async function performRoll(indices){
+  if(!isHost()) return;
   const p=currentPlayer(); if(!p?.alive||state.gameOver) return;
   animating=true; state.rollsMade++;
   const rolledFaces=[];
   indices.forEach(i=>{ state.dice[i]=randFace(); state.held[i]=false; rolledFaces.push([i,state.dice[i]]); });
+  if(netMode==='host') netSend('anim',{indices,dice:state.dice.slice()});
   renderGame(); animateDice(indices);
   await sleep(760);
   indices.forEach(i=>$('diceRow').children[i].querySelector('.die').classList.remove('rolling'));
@@ -609,7 +766,7 @@ async function resolveIndianAttack(){
 }
 
 async function resolveTurn(fromDynamite=false){
-  if(state.resolving||state.gameOver) return;
+  if(!isHost()||state.resolving||state.gameOver) return;
   state.resolving=true; const p=currentPlayer();
   $('resolveBtn').style.display='none'; $('rollBtn').disabled=true;
   const dyn=countFace('dynamite');
@@ -627,7 +784,7 @@ async function resolveTurn(fromDynamite=false){
     if(!candidates.length) continue;
     let targetId;
     if(p.isBot){ targetId=botChooseAttackTarget(p,candidates,shot.face); await botPause(); }
-    else targetId=await choosePlayer(`${FACE_LABEL[shot.face]}`,'Choose a legal target.',candidates,false);
+    else targetId=await askChoosePlayer(p.id,`${FACE_LABEL[shot.face]}`,'Choose a legal target.',candidates,false);
     if(targetId) selected.push({targetId,damage:shot.damage,face:shot.face,distance:tableDistance(p.id,targetId,snapshot)});
   }
   if(charIs(p,'Slab the Killer') && beers>0 && selected.length && !state.slabUsedThisTurn){
@@ -635,8 +792,8 @@ async function resolveTurn(fromDynamite=false){
     if(p.isBot){
       chosenIndex=botChooseSlabShot(p,selected);
     } else {
-      const use=await askYesNo('Slab the Killer','Spend one Beer result to make one of your chosen Bull’s-eye attacks deal 2 damage?');
-      if(use) chosenIndex=await chooseShotToDouble(selected);
+      const use=await askYesNoOf(p.id,'Slab the Killer','Spend one Beer result to make one of your chosen Bull’s-eye attacks deal 2 damage?');
+      if(use) chosenIndex=await askShotToDouble(p.id,selected);
     }
     if(chosenIndex>=0){ selected[chosenIndex].damage=2; beers--; state.slabUsedThisTurn=true; log(`${p.name} used Slab the Killer's ability.`); }
   }
@@ -656,7 +813,7 @@ async function resolveTurn(fromDynamite=false){
     if(!candidates.length) break;
     let targetId;
     if(p.isBot){ targetId=botChooseBeerTarget(p,candidates); await botPause(); }
-    else targetId=await choosePlayer('Beer','Choose a player to heal.',candidates,false);
+    else targetId=await askChoosePlayer(p.id,'Beer','Choose a player to heal.',candidates,false);
     if(targetId){
       const t=getPlayer(targetId); const before=t.hp; let heal=1;
       if(charIs(p,'Jesse Jones') && targetId===p.id && p.hp<=4) heal=2;
@@ -675,7 +832,7 @@ async function resolveTurn(fromDynamite=false){
       if(!candidates.length) break;
       let targetId;
       if(p.isBot) targetId=botChooseArrowRemoval(p,candidates);
-      else targetId=await choosePlayer('Kit Carlson','Remove one arrow from a player, or skip.',candidates,true);
+      else targetId=await askChoosePlayer(p.id,'Kit Carlson','Remove one arrow from a player, or skip.',candidates,true);
       if(targetId){ const t=getPlayer(targetId); t.arrows--; state.arrowPool++; log(`${p.name} removed one of ${t.name}'s arrows.`); renderGame(); }
     }
   }
@@ -708,12 +865,12 @@ async function loseLife(playerId,amount,ctx){
     if(charIs(p,'Bart Cassidy') && (ctx.type==='shot'||ctx.type==='gatling') && state.arrowPool>1){
       let use;
       if(p.isBot) use=(p.hp<=3 || state.arrowPool>=5);
-      else use=await askYesNo('Bart Cassidy',`Take an arrow instead of losing 1 life? (${state.arrowPool} arrows remain in the pool.)`);
+      else use=await askYesNoOf(p.id,'Bart Cassidy',`Take an arrow instead of losing 1 life? (${state.arrowPool} arrows remain in the pool.)`);
       if(use){ substituted++; await giveArrow(p.id); continue; }
     }
     p.hp--; actualLost++;
     if(charIs(p,'Pedro Ramirez') && p.arrows>0 && ctx.type!=='indians'){
-      let use=p.isBot ? true : await askYesNo('Pedro Ramirez','Discard one of your arrows after losing this life point?');
+      let use=p.isBot ? true : await askYesNoOf(p.id,'Pedro Ramirez','Discard one of your arrows after losing this life point?');
       if(use && p.arrows>0){ p.arrows--; state.arrowPool++; log(`${p.name} discarded an arrow with Pedro Ramirez's ability.`,p.id,'ability'); }
     }
     if(p.hp<=0){ fell=true; break; }
@@ -776,26 +933,28 @@ async function checkWin(){
 }
 async function endGame(ids,reason){
   if(state.gameOver) return; state.gameOver=true; state.winners=ids; state.resolving=false;
+  state.players.forEach(p=>p.revealedRole=true);   // the table shows every role once it is over
   await sleep(650); const names=ids.map(id=>getPlayer(id)?.name).filter(Boolean);
   $('winnerText').innerHTML=`${escapeHtml(names.join(', ')||'No survivor')}<br><span class="small">${escapeHtml(reason)}</span>`;
   $('finalRoles').innerHTML=state.players.map(p=>`<div class="seat-row"><div><b>${escapeHtml(p.name)}</b><div class="small">${escapeHtml(p.character.name)}</div></div><span class="role-pill ${roleClass(p.role)}">${escapeHtml(p.role)}</span></div>`).join('');
+  if(netMode==='host'){ pushStateNow(); netSend('over',{ids,reason}); markRoomFinished(); }
   showScreen('gameOverScreen');
 }
-$('newGameBtn').addEventListener('click',()=>{ state=null; $('diceRow').innerHTML=''; showScreen('setupScreen'); });
+$('newGameBtn').addEventListener('click',async()=>{ await leaveRoom(); state=null; $('diceRow').innerHTML=''; showScreen('setupScreen'); });
 
 function nextTurn(){
-  if(state.gameOver) return;
+  if(!isHost()||state.gameOver) return;
   let idx=state.turnIndex; do{ idx=(idx+1)%state.players.length; }while(!state.players[idx].alive);
   state.turnIndex=idx; state.dice=['arrow','dynamite','one','two','beer']; state.held=[false,false,false,false,false]; state.locked=[false,false,false,false,false]; state.rollsMade=0; state.resolving=false; state.gatlingActivatedThisTurn=false; state.slabUsedThisTurn=false;
   state.maxRolls=charIs(currentPlayer(),'Lucky Duke')?4:3; renderGame(); setTimeout(startTurn,currentPlayer().isBot?BOT_ACTION_DELAY_MS:700);
 }
 async function startTurn(){
-  if(state.gameOver) return; const p=currentPlayer(); if(!p.alive){ nextTurn(); return; }
+  if(!isHost()||state.gameOver) return; const p=currentPlayer(); if(!p.alive){ nextTurn(); return; }
   state.maxRolls=charIs(p,'Lucky Duke')?4:3; renderGame();
   if(charIs(p,'Sid Ketchum')){
     const candidates=alivePlayers().map(x=>x.id); let targetId;
     if(p.isBot){ targetId=botChooseBeerTarget(p,candidates); await botPause(); }
-    else targetId=await choosePlayer('Sid Ketchum','At the start of your turn, heal one alive player by 1.',candidates,false);
+    else targetId=await askChoosePlayer(p.id,'Sid Ketchum','At the start of your turn, heal one alive player by 1.',candidates,false);
     if(targetId){ const t=getPlayer(targetId); const before=t.hp; t.hp=Math.min(t.maxHp,t.hp+1); if(t.hp>before) log(`${p.name} healed ${t.name} by 1 at the start of the turn.`); renderGame(); }
   }
   if(p.isBot) await botTurn(p);
@@ -964,10 +1123,10 @@ function tableDistance(fromId,toId,snapshotIds=alivePlayers().map(p=>p.id)){
   return Math.min(clockwise,counter);
 }
 function distanceFromHuman(toId){
-  if(toId==='human') return 0;
+  if(toId===MY_ID) return 0;
   const target=getPlayer(toId);
   if(!target?.alive) return '—';
-  return tableDistance('human',toId);
+  return tableDistance(MY_ID,toId);
 }
 function legalTargets(attackerId,face,snapshotIds){
   const p=getPlayer(attackerId); const ids=snapshotIds.filter(id=>getPlayer(id)?.alive); if(ids.length<=1) return [];
@@ -1019,8 +1178,8 @@ function closeChoice(){ $('choiceBackdrop').classList.remove('show'); }
 
 function showPlayerInfo(id){
   const p=getPlayer(id); if(!p) return;
-  const role=publicRole(p)||p.id==='human'?`<span class="role-pill ${roleClass(p.role)}">${escapeHtml(p.role)}</span>`:'<span class="role-pill">SECRET ROLE</span>';
-  const distanceLine=p.id==='human'?'You':(!p.alive?'Eliminated':`Distance from you: ${distanceFromHuman(p.id)}`);
+  const role=publicRole(p)||p.id===MY_ID?`<span class="role-pill ${roleClass(p.role)}">${escapeHtml(p.role)}</span>`:'<span class="role-pill">SECRET ROLE</span>';
+  const distanceLine=p.id===MY_ID?'You':(!p.alive?'Eliminated':`Distance from you: ${distanceFromHuman(p.id)}`);
   $('infoContent').innerHTML=`<h2>${escapeHtml(p.name)} ${p.isBot?'<span class="small">BOT</span>':''}</h2><p>${role}</p><p><b>♥ ${p.hp}/${p.maxHp}</b> &nbsp; <b>➶ ${p.arrows}</b></p><p><b>${escapeHtml(distanceLine)}</b></p><div class="character-panel"><strong>${escapeHtml(p.character.name)}</strong><p style="margin:8px 0 0">${escapeHtml(p.character.desc)}</p></div>${!p.alive?'<p><b>Eliminated</b></p>':''}`;
   $('infoBackdrop').classList.add('show');
 }
@@ -1085,6 +1244,348 @@ function escapeHtml(s){ return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;'
 
 // Close info modal by tapping the dark area.
 $('infoBackdrop').addEventListener('click',e=>{ if(e.target===$('infoBackdrop')) $('infoBackdrop').classList.remove('show'); });
+
+
+
+// ==================================================================
+//  MULTIPLAYER TRANSPORT
+//  The host device runs the exact same game engine as solo play and
+//  is the single source of truth. Guests render snapshots and send
+//  their taps back. No rule ever runs twice.
+// ==================================================================
+
+function supabaseReady(){
+  return !!(window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY
+            && !SUPABASE_URL.startsWith('PASTE') && !SUPABASE_ANON_KEY.startsWith('PASTE'));
+}
+function sbClient(){
+  if(!sb) sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { realtime:{ params:{ eventsPerSecond: 20 } } });
+  return sb;
+}
+function makeCode(){
+  const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // no I, O, 0, 1
+  return Array.from({length:4},()=>A[cryptoInt(A.length)]).join('');
+}
+
+// ---------- room lifecycle ----------
+
+async function hostCreateRoom(name,count){
+  const db=sbClient();
+  let code=null, lastErr=null;
+  for(let i=0;i<6 && !code;i++){
+    const tryCode=makeCode();
+    const {error}=await db.from('bang_rooms').insert({code:tryCode,host_name:name,player_count:count,status:'lobby'});
+    if(!error) code=tryCode; else lastErr=error;
+  }
+  if(!code) throw new Error(lastErr?.message||'Could not create a room. Did you run the SQL setup?');
+
+  const {error:pe}=await db.from('bang_players').insert({room_code:code,seat:0,player_id:'p0',name,is_host:true,client_id:CLIENT_ID});
+  if(pe) throw new Error(pe.message);
+
+  netMode='host'; MY_ID='p0'; mySeat=0; myRole=null;
+  room={code,playerCount:count,status:'lobby'};
+  state=freshState(count,name);
+  await openChannel(code);
+  await refreshRoster();
+}
+
+async function guestJoinRoom(name,code){
+  if(!/^[A-Z0-9]{4}$/.test(code)) throw new Error('Room codes are four letters or numbers.');
+  const db=sbClient();
+  const {data:r,error}=await db.from('bang_rooms').select('*').eq('code',code).maybeSingle();
+  if(error) throw new Error(error.message);
+  if(!r) throw new Error('No table with that code. Check the letters and try again.');
+  if(r.status!=='lobby') throw new Error('That game has already started.');
+
+  const {data:existing}=await db.from('bang_players').select('*').eq('room_code',code);
+  const mine=(existing||[]).find(x=>x.client_id===CLIENT_ID);
+  let seat=mine?mine.seat:-1;
+
+  if(seat<0){
+    const taken=new Set((existing||[]).map(x=>x.seat));
+    for(let i=1;i<r.player_count;i++){ if(!taken.has(i)){ seat=i; break; } }
+    if(seat<0) throw new Error('That table is full.');
+    const {error:ie}=await db.from('bang_players').insert({room_code:code,seat,player_id:'p'+seat,name,client_id:CLIENT_ID});
+    if(ie) throw new Error('Someone took that seat first. Try joining again.');
+  } else {
+    await db.from('bang_players').update({name}).eq('room_code',code).eq('client_id',CLIENT_ID);
+  }
+
+  netMode='guest'; mySeat=seat; MY_ID='p'+seat; myRole=null;
+  room={code,playerCount:r.player_count,status:'lobby'};
+  state=freshState(r.player_count,r.host_name);
+  await openChannel(code);
+  await refreshRoster();
+}
+
+async function refreshRoster(){
+  if(!isOnline()||!room) return;
+  const {data}=await sbClient().from('bang_players').select('*').eq('room_code',room.code).order('seat');
+  roster=data||[];
+  if(state) state.seats=roster.map(x=>({seat:x.seat,name:x.name,isHost:x.is_host}));
+  if($('lobbyScreen').classList.contains('active')) renderLobby();
+}
+
+async function leaveRoom(){
+  try{
+    if(isOnline() && room){
+      if(netMode==='guest'){
+        await sbClient().from('bang_players').delete().eq('room_code',room.code).eq('client_id',CLIENT_ID);
+      } else {
+        netSend('closed',{});
+        await sbClient().from('bang_rooms').delete().eq('code',room.code);
+      }
+    }
+  }catch(e){ console.warn(e); }
+  if(chan){ try{ await sbClient().removeChannel(chan); }catch(e){} }
+  chan=null; room=null; roster=[]; netMode='solo'; MY_ID='p0'; mySeat=0; myRole=null;
+}
+
+async function markRoomFinished(){
+  if(netMode!=='host'||!room) return;
+  try{ await sbClient().from('bang_rooms').update({status:'finished',updated_at:new Date().toISOString()}).eq('code',room.code); }catch(e){}
+}
+
+// ---------- channel ----------
+
+async function openChannel(code){
+  const db=sbClient();
+  chan=db.channel('bang-'+code,{config:{broadcast:{self:false,ack:false}}});
+  chan.on('broadcast',{event:'msg'},({payload})=>{ try{ onNetMessage(payload); }catch(e){ console.error(e); } });
+  chan.on('postgres_changes',{event:'*',schema:'public',table:'bang_players',filter:'room_code=eq.'+code},()=>refreshRoster());
+  await new Promise((resolve,reject)=>{
+    let settled=false;
+    chan.subscribe(status=>{
+      if(status==='SUBSCRIBED'&&!settled){ settled=true; resolve(); }
+      if((status==='CHANNEL_ERROR'||status==='TIMED_OUT')&&!settled){ settled=true; reject(new Error('Realtime connection failed. Check that Realtime is enabled for this project.')); }
+    });
+    setTimeout(()=>{ if(!settled){ settled=true; resolve(); } },6000);
+  });
+}
+
+function netSend(type,data){
+  if(!chan) return;
+  try{ chan.send({type:'broadcast',event:'msg',payload:Object.assign({type,from:MY_ID},data)}); }
+  catch(e){ console.warn('send failed',e); }
+}
+
+// ---------- state sync ----------
+
+function snapshot(){
+  return {
+    playerCount:state.playerCount,
+    hostName:state.hostName,
+    arrowPool:state.arrowPool,
+    turnIndex:state.turnIndex,
+    dice:state.dice.slice(),
+    held:state.held.slice(),
+    locked:state.locked.slice(),
+    rollsMade:state.rollsMade,
+    maxRolls:state.maxRolls,
+    resolving:state.resolving,
+    gameOver:state.gameOver,
+    winners:state.winners.slice(),
+    threePlayerSuddenDeath:state.threePlayerSuddenDeath,
+    log:state.log.slice(0,50),
+    seats:state.seats||[],
+    players:state.players.map(p=>({
+      id:p.id, name:p.name, isBot:p.isBot, hp:p.hp, maxHp:p.maxHp, baseMax:p.baseMax,
+      arrows:p.arrows, alive:p.alive, revealedRole:p.revealedRole, character:p.character,
+      // secret roles are stripped; each player is told their own privately
+      role:(state.playerCount===3||p.revealedRole||!p.alive||p.role==='Sheriff')?p.role:null
+    }))
+  };
+}
+
+function applySnapshot(snap){
+  clearGuestWait();
+  const keep=state?{suspicion:state.suspicion||{}}:{suspicion:{}};
+  state=Object.assign({
+    suspicion:keep.suspicion, gatlingActivatedThisTurn:false, slabUsedThisTurn:false
+  },snap);
+  state.players.forEach(p=>{
+    if(p.id===MY_ID && myRole) p.role=myRole;
+    if(!p.role) p.role='Unknown';
+  });
+  if($('gameScreen').classList.contains('active')) renderGame();
+}
+
+function markGuestWaiting(){
+  guestWaiting=true;
+  clearTimeout(guestWaitTimer);
+  // If the host's answer never lands, hand the controls back rather than freezing.
+  guestWaitTimer=setTimeout(()=>{ guestWaiting=false; if($('gameScreen').classList.contains('active')) renderGame(); },5000);
+}
+function clearGuestWait(){ guestWaiting=false; clearTimeout(guestWaitTimer); }
+
+function pushState(){
+  if(netMode!=='host'||!chan) return;
+  clearTimeout(statePushTimer);
+  statePushTimer=setTimeout(pushStateNow,70);
+}
+function pushStateNow(){
+  if(netMode!=='host'||!chan||!state||!state.players.length) return;
+  clearTimeout(statePushTimer);
+  netSend('state',{snap:snapshot()});
+}
+
+// ---------- starting the game ----------
+
+function netStartGame(){
+  if(netMode!=='host'||!room) return;
+  myRole=getPlayer(MY_ID)?.role||null;
+  const snap=snapshot();
+  state.players.forEach(p=>{
+    if(p.isBot||p.id===MY_ID) return;
+    netSend('start',{to:p.id,role:p.role,snap});
+  });
+  sbClient().from('bang_rooms').update({status:'playing',updated_at:new Date().toISOString()}).eq('code',room.code).then(()=>{},()=>{});
+}
+
+// ---------- inbound messages ----------
+
+function onNetMessage(m){
+  if(!m||!m.type) return;
+  if(m.to && m.to!==MY_ID) return;
+
+  switch(m.type){
+    case 'start':
+      if(netMode!=='guest') return;
+      myRole=m.role||null;
+      applySnapshot(m.snap);
+      showReveal();
+      showScreen('revealScreen');
+      break;
+
+    case 'state':
+      if(netMode!=='guest') return;
+      applySnapshot(m.snap);
+      break;
+
+    case 'anim':
+      if(netMode!=='guest'||!state) return;
+      state.dice=m.dice.slice();
+      renderGame();
+      animateDice(m.indices);
+      break;
+
+    case 'fx': {
+      if(netMode!=='guest') return;
+      const a=m.args||[];
+      if(m.kind==='announce') announceLocal(a[0],a[1],a[2],a[3]);
+      else if(m.kind==='shot') playShotFxLocal(a[0],a[1],a[2]);
+      else if(m.kind==='gatling') playGatlingFxLocal();
+      else if(m.kind==='storm') playArrowStormFxLocal();
+      break;
+    }
+
+    case 'ask':
+      if(netMode!=='guest') return;
+      handleRemoteAsk(m);
+      break;
+
+    case 'answer':
+      if(netMode!=='host') return;
+      if(pendingAsks[m.rid]) pendingAsks[m.rid](m.value);
+      break;
+
+    case 'input':
+      if(netMode!=='host') return;
+      handleGuestInput(m);
+      break;
+
+    case 'over':
+      if(netMode!=='guest') return;
+      showEndScreen(m.ids,m.reason);
+      break;
+
+    case 'closed':
+      if(netMode!=='guest') return;
+      announceLocal('The host closed the table.',true,MAJOR_MESSAGE_MS);
+      break;
+  }
+}
+
+// ---------- host: acting on a guest's taps ----------
+
+async function handleGuestInput(m){
+  if(!state||state.gameOver){ pushStateNow(); return; }
+  const p=currentPlayer();
+  if(!p||p.id!==m.from||p.isBot){ pushStateNow(); return; }   // only the seat whose turn it is
+  if(m.action==='hold'){
+    if(animating||state.resolving){ pushStateNow(); return; }
+    if(state.rollsMade===0||state.rollsMade>=state.maxRolls){ pushStateNow(); return; }
+    if(state.locked[m.index]){ pushStateNow(); return; }
+    state.held[m.index]=!state.held[m.index];
+    renderGame();
+    return;
+  }
+  if(m.action==='roll'){
+    if(animating||state.resolving){ pushStateNow(); return; }
+    const indices=state.rollsMade===0?[0,1,2,3,4]:[0,1,2,3,4].filter(i=>!state.held[i]&&!state.locked[i]);
+    if(!indices.length){ await resolveTurn(); return; }
+    await performRoll(indices);
+    return;
+  }
+  if(m.action==='resolve'){ await resolveTurn(); return; }
+}
+
+// ---------- prompts ----------
+
+function askChoosePlayer(ownerId,title,text,candidates,allowSkip=false){
+  if(ownerId===MY_ID) return choosePlayer(title,text,candidates,allowSkip);
+  return remoteAsk(ownerId,{k:'choose',title,text,candidates,allowSkip},allowSkip?null:candidates[0]);
+}
+function askYesNoOf(ownerId,title,text){
+  if(ownerId===MY_ID) return askYesNo(title,text);
+  return remoteAsk(ownerId,{k:'yesno',title,text},false);
+}
+function askShotToDouble(ownerId,selected){
+  if(ownerId===MY_ID) return chooseShotToDouble(selected);
+  return remoteAsk(ownerId,{k:'double',targets:selected.map(x=>x.targetId)},0);
+}
+
+function remoteAsk(playerId,spec,fallback){
+  if(netMode!=='host') return Promise.resolve(fallback);
+  const target=getPlayer(playerId);
+  return new Promise(resolve=>{
+    const rid=Math.random().toString(36).slice(2);
+    let done=false;
+    const finish=v=>{ if(done) return; done=true; delete pendingAsks[rid]; clearTimeout(timer); resolve(v); };
+    const timer=setTimeout(()=>{
+      if(done) return;
+      announceLocal(`${target?target.name:'That player'} took too long — the table decided for them.`,false,ACTION_MESSAGE_MS);
+      finish(fallback);
+    },45000);
+    pendingAsks[rid]=finish;
+    netSend('ask',{to:playerId,rid,spec});
+    announceLocal(`Waiting for ${target?target.name:'a player'}…`,false,1400);
+  });
+}
+
+async function handleRemoteAsk(m){
+  const s=m.spec||{};
+  let value;
+  if(s.k==='choose') value=await choosePlayer(s.title,s.text,s.candidates,s.allowSkip);
+  else if(s.k==='yesno') value=await askYesNo(s.title,s.text);
+  else if(s.k==='double') value=await chooseShotToDouble((s.targets||[]).map(id=>({targetId:id})));
+  else return;
+  netSend('answer',{to:m.from,rid:m.rid,value});
+}
+
+// ---------- shared end screen ----------
+
+function showEndScreen(ids,reason){
+  const names=(ids||[]).map(id=>getPlayer(id)?.name).filter(Boolean);
+  $('winnerText').innerHTML=`${escapeHtml(names.join(', ')||'No survivor')}<br><span class="small">${escapeHtml(reason||'')}</span>`;
+  $('finalRoles').innerHTML=state.players.map(p=>`<div class="seat-row"><div><b>${escapeHtml(p.name)}</b><div class="small">${escapeHtml(p.character.name)}</div></div><span class="role-pill ${roleClass(p.role)}">${escapeHtml(p.role)}</span></div>`).join('');
+  showScreen('gameOverScreen');
+}
+
+// Tidy up if the host walks away mid-game.
+window.addEventListener('pagehide',()=>{ if(netMode==='host'&&room) netSend('closed',{}); });
+
+setSetupMode('solo');
 
 })();
 </script>
