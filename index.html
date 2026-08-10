@@ -2,11 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=6,user-scalable=yes" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#24140f" />
 <title>BANG! Dice — Local Bot Edition</title>
 <link rel="manifest" href="manifest.json" />
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-bang-192.png" />
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-bang-512.png" />
 <link rel="apple-touch-icon" href="icons/icon-bang-180.png" />
@@ -31,10 +30,7 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;min-height:100%;background:#180e0b;color:var(--cream);font-family:Georgia,"Times New Roman",serif}
-  /* overscroll-behavior stops the browser's pull-to-refresh and bounce, so a
-     stray downward swipe can no longer reload the page mid-game. */
-  html{overscroll-behavior:none}
-  body{min-height:100dvh;overflow-x:hidden;overscroll-behavior-y:contain}
+  body{min-height:100dvh;overflow-x:hidden}
   button,input,select{font:inherit}
   button{touch-action:manipulation}
   .screen{display:none;min-height:100dvh}
@@ -71,28 +67,7 @@
   .bot-on-start{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#704327}
   .reveal-role{font-family:Impact,sans-serif;font-size:42px;letter-spacing:.06em;color:#801f1b;text-align:center;margin:18px 0 8px}
   .character-panel{border:2px solid rgba(88,47,22,.35);border-radius:18px;padding:15px;margin:15px 0;background:rgba(255,255,255,.22)}
-  .character-panel strong{font-size:24px}
-
-  /* Player card: identity on the left, vital numbers filling the space on the right. */
-  .pcard-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start}
-  .pcard-name{font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif;font-size:38px;line-height:1;letter-spacing:.02em;color:#5e2d12;word-break:break-word}
-  .pcard-bot{font-size:14px;font-weight:900;letter-spacing:.1em;opacity:.6;vertical-align:middle}
-  .pcard-vitals{display:grid;gap:8px;justify-items:end;text-align:right}
-  .pcard-stat{display:flex;align-items:baseline;gap:9px;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1}
-  .pcard-stat .glyph{font-size:34px}
-  .pcard-stat .val{font-size:40px;font-weight:900;letter-spacing:-.01em}
-  .pcard-stat .val .of{font-size:24px;font-weight:800;opacity:.62}
-  .pcard-stat.life .glyph,.pcard-stat.life .val{color:#8e211d}
-  .pcard-stat.arrows .glyph,.pcard-stat.arrows .val{color:#2c6798}
-  .pcard-stat .cap{display:block;font-size:11px;letter-spacing:.14em;font-weight:900;opacity:.6;text-transform:uppercase}
-  .pcard-distance{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:22px;font-weight:900;letter-spacing:.02em;color:#5e2d12;margin:14px 0 0;padding:10px 13px;border-radius:13px;background:rgba(255,255,255,.34);border:1px solid rgba(86,44,18,.28)}
-  .pcard-distance b{font-size:26px;color:#8e211d}
-  .pcard-dead{margin-top:12px;font-size:20px;font-weight:900;color:#8e211d;letter-spacing:.04em}
-  @media (max-width:360px){
-    .pcard-name{font-size:31px}
-    .pcard-stat .val{font-size:34px}
-    .pcard-stat .glyph{font-size:29px}
-  }
+  .character-panel strong{font-size:21px}
   .role-cover{height:150px;border-radius:18px;display:grid;place-items:center;text-align:center;background:linear-gradient(145deg,#3a1a12,#120907);color:#f7d59c;border:2px solid #7e4a29;font-weight:950;cursor:pointer;margin:14px 0;box-shadow:inset 0 0 0 5px rgba(255,255,255,.03)}
 
   /* GAME */
@@ -103,19 +78,13 @@
   .top-actions{display:flex;gap:6px}
   .icon-btn{width:38px;height:34px;border:1px solid rgba(255,255,255,.17);border-radius:11px;background:rgba(255,255,255,.08);color:#ffe8bf;font-size:17px}
   .players-strip{display:flex;gap:9px;overflow-x:auto;scrollbar-width:none;padding:1px 0 4px}.players-strip::-webkit-scrollbar{display:none}
-  .player-chip{flex:0 0 auto;min-width:140px;max-width:182px;border:1px solid color-mix(in srgb,var(--player-accent,#c58a55) 48%,rgba(255,255,255,.14));background:linear-gradient(180deg,color-mix(in srgb,var(--player-accent,#c58a55) 12%,#352018),#352018 66%);border-radius:15px;padding:10px 11px 9px;color:#f8dfb7;position:relative;min-height:92px;text-align:left;box-shadow:inset 0 3px 0 color-mix(in srgb,var(--player-accent,#c58a55) 62%,transparent)}
-  .player-chip.active{border-color:#ffd479;border-width:2px;padding:9px 10px 8px;
-    background:linear-gradient(180deg,color-mix(in srgb,var(--player-accent,#c58a55) 30%,#40261b),#3d2419 72%);
-    box-shadow:inset 0 4px 0 var(--player-accent,#f3c466),0 0 0 3px rgba(255,205,110,.42),0 0 26px rgba(255,199,96,.34);
-    transform:translateY(-2px)}
-  .player-chip.active .pname{color:#fff2d4}
-  .player-chip.active .char{padding-right:50px}
-  .player-chip.active:after{content:'TURN';position:absolute;right:8px;bottom:7px;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:9px;font-weight:900;letter-spacing:.14em;color:#241309;background:#ffd479;border-radius:5px;padding:2px 5px}
+  .player-chip{flex:0 0 auto;min-width:132px;max-width:172px;border:1px solid color-mix(in srgb,var(--player-accent,#c58a55) 48%,rgba(255,255,255,.14));background:linear-gradient(180deg,color-mix(in srgb,var(--player-accent,#c58a55) 12%,#352018),#352018 66%);border-radius:15px;padding:10px 11px 9px;color:#f8dfb7;position:relative;min-height:92px;text-align:left;box-shadow:inset 0 3px 0 color-mix(in srgb,var(--player-accent,#c58a55) 62%,transparent)}
+  .player-chip.active{border-color:#f3c466;box-shadow:inset 0 3px 0 var(--player-accent,#f3c466),0 0 0 2px rgba(243,196,102,.18),0 0 18px rgba(243,196,102,.18)}
   .player-chip.dead{filter:grayscale(1);opacity:.55}
   .player-chip .pname{font-weight:950;font-size:16px;line-height:1.05;max-width:142px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .player-chip .stats{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:16px;font-weight:900;margin-top:7px;letter-spacing:.01em}
-  .player-chip .distance{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;font-weight:900;letter-spacing:.05em;color:#ffd694;margin-top:6px;text-transform:uppercase}
-  .player-chip .char{font-size:12px;opacity:.82;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .player-chip .stats{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;font-weight:900;margin-top:7px;letter-spacing:.01em}
+  .player-chip .distance{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:10px;font-weight:900;letter-spacing:.09em;color:#f0c77f;margin-top:5px;text-transform:uppercase}
+  .player-chip .char{font-size:11px;opacity:.78;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sheriff-star{position:absolute;right:7px;top:6px;font-size:17px}
 
   .table-stage{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;background:
@@ -194,8 +163,6 @@
   @keyframes stormFly{0%{opacity:0;transform:translate(var(--sx),var(--sy)) rotate(var(--rot)) scale(.8)}10%{opacity:.95}86%{opacity:.95}100%{opacity:0;transform:translate(var(--ex),var(--ey)) rotate(var(--rot)) scale(1.05)}}
 
   .modal-backdrop{display:none;position:fixed;z-index:100;inset:0;background:rgba(8,4,3,.72);align-items:flex-end;justify-content:center;padding:12px}.modal-backdrop.show{display:flex}
-  .modal-backdrop.show .modal{animation:modalPop .24s cubic-bezier(.2,.9,.3,1.2)}
-  @keyframes modalPop{0%{transform:translateY(16px) scale(.97);opacity:0}100%{transform:none;opacity:1}}
   .modal{width:min(520px,100%);max-height:min(78dvh,700px);overflow:auto;background:linear-gradient(#edd09b,#d7a565);color:#2a1710;border:2px solid #8b5a2c;border-radius:23px;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,.55)}
   .modal h2{font-size:23px;margin-bottom:6px}.modal p{line-height:1.35}.choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}.choice-grid button{min-height:55px;border:1px solid #80522c;border-radius:14px;background:#fff0cf;color:#2a1710;font-weight:900;padding:9px}.choice-grid button small{display:block;font-weight:600;opacity:.7;margin-top:3px}.choice-grid .skip{grid-column:1/-1;background:#6c4a31;color:#ffeac8}.modal-actions{display:flex;gap:9px;margin-top:14px}.modal-actions button{flex:1}
   .rules-body{font-size:14px;line-height:1.42}
@@ -206,26 +173,8 @@
   .rules-face{display:grid;grid-template-columns:26px 1fr;gap:6px 9px;align-items:start;margin:0 0 8px}
   .rules-face b{font-size:17px;text-align:center;line-height:1.15}
   .rules-note{background:rgba(255,255,255,.3);border:1px solid rgba(86,44,18,.28);border-radius:12px;padding:9px 11px;margin:10px 0}
-  .mode-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:14px 0 6px}
-  .mode-tabs .tab{min-height:46px;padding:6px 4px;font-size:12px;font-weight:900;letter-spacing:.04em;border:1px solid #8b5a2c;border-radius:13px;background:rgba(255,255,255,.28);color:#4a2a15}
-  .mode-tabs .tab.active{background:#7d1f1a;border-color:#5d1512;color:#ffe9c4;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
-  .room-code{font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif;font-size:46px;letter-spacing:.22em;text-align:center;color:#7d1f1a;text-shadow:0 2px 0 rgba(255,255,255,.5);margin:6px 0 2px;padding-left:.22em}
-  .room-code-label{text-align:center;font-size:11px;letter-spacing:.16em;font-weight:900;opacity:.7}
-  #joinCode{text-transform:uppercase;letter-spacing:.3em;text-align:center;font-weight:900;font-size:24px}
-  #joinCode::placeholder{color:rgba(42,23,16,.3);font-weight:700}
-  #joinCode::-webkit-input-placeholder{color:rgba(42,23,16,.3);font-weight:700}
-  .resume-bar{background:rgba(125,31,26,.12);border:1px solid rgba(125,31,26,.45);border-radius:15px;padding:12px;margin-bottom:14px}
-  .resume-bar p{font-size:13px;margin:0 0 10px;line-height:1.35}
-  .resume-bar .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .resume-bar button{min-height:44px;border-radius:12px;font-weight:900;font-size:13px;border:1px solid #8b5a2c}
-  .resume-bar .go{background:#7d1f1a;color:#ffe9c4;border-color:#5d1512}
-  .resume-bar .drop{background:rgba(255,255,255,.3);color:#4a2a15}
-  .seat-row.mine{outline:2px solid #7d1f1a;outline-offset:-2px}
-  .conn-note{font-size:12px;text-align:center;margin-top:10px;opacity:.75;min-height:16px}
-  .conn-note.bad{color:#7d1f1a;opacity:1;font-weight:800}
-  .log-list{display:grid;gap:8px;font-size:14px}.log-item{--log-accent:#8b5a2c;padding:10px 11px 10px 13px;background:linear-gradient(90deg,color-mix(in srgb,var(--log-accent) 18%,rgba(255,255,255,.24)),rgba(255,255,255,.16));border-radius:11px;border:1px solid color-mix(in srgb,var(--log-accent) 36%,rgba(80,40,16,.17));border-left:7px solid var(--log-accent);line-height:1.35}.log-item.system{--log-accent:#7d6047}
+  .log-list{display:grid;gap:8px;font-size:14px}.log-item{--log-accent:#8b5a2c;padding:10px 11px 10px 13px;background:linear-gradient(90deg,color-mix(in srgb,var(--log-accent) 18%,rgba(255,255,255,.24)),rgba(255,255,255,.16));border-radius:11px;border:1px solid color-mix(in srgb,var(--log-accent) 36%,rgba(80,40,16,.17));border-left:5px solid var(--log-accent);line-height:1.35}.log-item.system{--log-accent:#7d6047}
   .role-pill{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.07em;background:#593622;color:#ffe2b2}
-  .pcard-top .role-pill{font-size:16px;padding:7px 15px;letter-spacing:.09em;margin-top:9px}
   .role-pill.sheriff{background:#8b5b13}.role-pill.outlaw{background:#7d211f}.role-pill.deputy{background:#315d74}.role-pill.renegade{background:#4d4d4d}
   .gameover-title{font-family:Impact,sans-serif;font-size:44px;letter-spacing:.06em;color:#8e211d;text-align:center}
   .winners{font-size:20px;font-weight:900;text-align:center;margin:10px 0 20px}
@@ -238,53 +187,28 @@
 
 <section id="setupScreen" class="screen active">
   <div class="paper-card">
-    <div class="center"><span class="badge">SOLO &amp; ONLINE TABLES</span></div>
+    <div class="center"><span class="badge">LOCAL BOT EDITION • NO SUPABASE YET</span></div>
     <div class="brand">BANG!</div>
-    <div id="resumeBar" class="resume-bar" style="display:none">
-      <p id="resumeText"></p>
-      <div class="row">
-        <button id="resumeBtn" class="go" type="button">RESUME</button>
-        <button id="discardBtn" class="drop" type="button">START FRESH</button>
-      </div>
-    </div>
     <div class="subtitle">Dice Table</div>
     <label for="humanName">Your name</label>
     <input id="humanName" maxlength="18" autocomplete="off" placeholder="Enter your name" />
-    <div class="mode-tabs">
-      <button id="tabSolo" class="tab active" type="button">SOLO<br>VS BOTS</button>
-      <button id="tabHost" class="tab" type="button">HOST<br>ONLINE</button>
-      <button id="tabJoin" class="tab" type="button">JOIN<br>ONLINE</button>
-    </div>
-    <div id="paneSeats">
-      <label for="playerCount">Total players</label>
-      <select id="playerCount">
-        <option value="3">3 players</option><option value="4">4 players</option><option value="5" selected>5 players</option><option value="6">6 players</option><option value="7">7 players</option><option value="8">8 players</option>
-      </select>
-    </div>
-    <div id="paneJoin" style="display:none">
-      <label for="joinCode">Room code</label>
-      <input id="joinCode" maxlength="4" autocomplete="off" inputmode="text" placeholder="– – – –" />
-    </div>
+    <label for="playerCount">Total players</label>
+    <select id="playerCount">
+      <option value="3">3 players</option><option value="4">4 players</option><option value="5" selected>5 players</option><option value="6">6 players</option><option value="7">7 players</option><option value="8">8 players</option>
+    </select>
     <button id="createBtn" class="primary">CREATE GAME</button>
-    <div id="setupHint" class="hint">Every empty seat is filled automatically with smart bots. The first bot is always <b>Vicki</b>.</div>
-    <div id="setupNote" class="conn-note"></div>
+    <div class="hint">For now, you are the only human. When you start, every empty seat is filled automatically with smart bots. The first bot is always <b>Vicki</b>.</div>
   </div>
 </section>
 
 <section id="lobbyScreen" class="screen">
   <div class="paper-card">
-    <div class="center"><span class="badge" id="lobbyBadge">LOCAL ROOM</span></div>
-    <div id="roomCodeBox" style="display:none">
-      <div class="room-code-label">ROOM CODE</div>
-      <div id="roomCode" class="room-code"></div>
-      <button id="copyCodeBtn" class="secondary" style="width:100%">COPY INVITE CODE</button>
-    </div>
+    <div class="center"><span class="badge">LOCAL ROOM • FUTURE MULTIPLAYER READY</span></div>
     <h2 class="center" style="margin:14px 0 4px">Table Lobby</h2>
     <p id="lobbyCaption" class="center small"></p>
     <div id="lobbyList" class="lobby-list"></div>
     <button id="startBtn" class="primary">START GAME</button>
-    <div id="lobbyNote" class="conn-note"></div>
-    <button id="backSetupBtn" class="secondary" style="width:100%;margin-top:12px">LEAVE</button>
+    <button id="backSetupBtn" class="secondary" style="width:100%;margin-top:12px">BACK</button>
   </div>
 </section>
 
@@ -354,9 +278,7 @@
 'use strict';
 
 const BOT_NAMES = ['Vicki','Zella','Bram','Orla','Rook','Sable','Jory','Nixie','Calder','Fenn','Maris','Zev'];
-// Eight separate hues rather than eight browns, so a change of speaker in the
-// log is obvious at a glance. Still muted enough to sit in the western palette.
-const PLAYER_TONES = ['#c9603a','#e0b23f','#7fa04e','#3d92a6','#9d5fa0','#9c2f34','#6f83c0','#cf8fa0'];
+const PLAYER_TONES = ['#c97a3d','#a85d38','#d1a15f','#8f5f3f','#c48652','#9a704e','#d0b17b','#ad6f45'];
 const FACE_ORDER = ['arrow','dynamite','one','two','beer','gatling'];
 const FACE_LABEL = {arrow:'Arrow',dynamite:'Dynamite',one:'Bull\'s-eye 1',two:'Bull\'s-eye 2',beer:'Beer',gatling:'Gatling'};
 const FACE_SYMBOL = {arrow:'➶',dynamite:'◆',one:'①',two:'②',beer:'🍺',gatling:'✹'};
@@ -402,34 +324,6 @@ const CHARACTERS = [
 
 let state = null;
 let pendingChoiceResolve = null;
-
-// ---------- MULTIPLAYER GLOBALS ----------
-// Paste your project values here. Leaving them blank keeps solo play working
-// and simply disables the two online buttons.
-const SUPABASE_URL = 'https://ghnuahsovbpyzrjvbylp.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_1Z7ddDl3qiL-8LRLhtML8Q_EOyJs6E2';
-
-let sb = null;                 // supabase client
-let netMode = 'solo';          // 'solo' | 'host' | 'guest'
-let MY_ID = 'p0';              // which seat this device controls
-let mySeat = 0;
-let myRole = null;             // this device's secret role, delivered privately
-let room = null;               // {code, playerCount, status}
-let chan = null;               // realtime broadcast channel
-let roster = [];               // seat rows from the database
-let setupMode = 'solo';        // which setup tab is selected
-const pendingAsks = {};        // requestId -> resolver, host side
-let statePushTimer = null;
-let guestWaiting = false;      // a tap has been sent to the host, awaiting the authoritative reply
-let guestWaitTimer = null;
-const CLIENT_ID = (() => {
-  let v = null;
-  try { v = localStorage.getItem('bangClientId'); } catch(e){}
-  if(!v){ v = Math.random().toString(36).slice(2) + Date.now().toString(36); try{ localStorage.setItem('bangClientId', v); }catch(e){} }
-  return v;
-})();
-const isHost = () => netMode === 'host' || netMode === 'solo';
-const isOnline = () => netMode === 'host' || netMode === 'guest';
 let animating = false;
 let toastTimer = null;
 const ACTION_MESSAGE_MS = 3000;
@@ -439,13 +333,7 @@ const BOT_ACTION_DELAY_MS = 3000;
 
 const $ = id => document.getElementById(id);
 const screens = ['setupScreen','lobbyScreen','revealScreen','gameScreen','gameOverScreen'];
-let navReplaying = false;      // true while we are honouring a back gesture
-function showScreen(id){
-  screens.forEach(s => $(s).classList.toggle('active',s===id));
-  if(!navReplaying){
-    try{ history.pushState({screen:id},''); }catch(e){}
-  }
-}
+function showScreen(id){ screens.forEach(s => $(s).classList.toggle('active',s===id)); }
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
 function cryptoInt(max){ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0] % max; }
@@ -475,10 +363,6 @@ function log(msg,actorId=null,kind='action'){
   state.log = state.log.slice(0,80);
 }
 async function announce(msg,big=false,ms=ACTION_MESSAGE_MS,actorId=null){
-  if(netMode==='host') netSend('fx',{kind:'announce',args:[msg,big,ms,actorId]});
-  return announceLocal(msg,big,ms,actorId);
-}
-async function announceLocal(msg,big=false,ms=ACTION_MESSAGE_MS,actorId=null){
   clearTimeout(toastTimer);
   const t=$('toast');
   t.textContent=msg;
@@ -491,10 +375,6 @@ async function announceLocal(msg,big=false,ms=ACTION_MESSAGE_MS,actorId=null){
 function fxLayer(){ return $('combatFx'); }
 function clearCombatFx(){ const fx=fxLayer(); fx.innerHTML=''; fx.classList.remove('show'); }
 async function playShotFx(attackerId,targetId,distance=1){
-  if(netMode==='host') netSend('fx',{kind:'shot',args:[attackerId,targetId,distance]});
-  return playShotFxLocal(attackerId,targetId,distance);
-}
-async function playShotFxLocal(attackerId,targetId,distance=1){
   const fx=fxLayer(); fx.innerHTML=''; fx.classList.add('show');
   const a=document.createElement('div');
   const vertical=Number(distance)>=2;
@@ -505,10 +385,6 @@ async function playShotFxLocal(attackerId,targetId,distance=1){
   clearCombatFx();
 }
 async function playGatlingFx(){
-  if(netMode==='host') netSend('fx',{kind:'gatling',args:[]});
-  return playGatlingFxLocal();
-}
-async function playGatlingFxLocal(){
   const fx=fxLayer(); fx.innerHTML=''; fx.classList.add('show');
   const flash=document.createElement('div'); flash.className='gatling-flash'; fx.appendChild(flash);
   for(let i=0;i<12;i++){
@@ -519,10 +395,6 @@ async function playGatlingFxLocal(){
   await sleep(1250); document.querySelector('.table-stage')?.classList.remove('fx-shake'); clearCombatFx();
 }
 async function playArrowStormFx(){
-  if(netMode==='host') netSend('fx',{kind:'storm',args:[]});
-  return playArrowStormFxLocal();
-}
-async function playArrowStormFxLocal(){
   const fx=fxLayer(); fx.innerHTML=''; fx.classList.add('show');
   const vw=Math.max(innerWidth,360), vh=Math.max(innerHeight,640);
   const total=24;
@@ -541,12 +413,15 @@ async function playArrowStormFxLocal(){
   await sleep(2200); document.querySelector('.table-stage')?.classList.remove('fx-shake'); clearCombatFx();
 }
 
-function freshState(count,name){
-  return {
+$('createBtn').addEventListener('click',()=>{
+  const name=$('humanName').value.trim();
+  if(!name){ $('humanName').focus(); $('humanName').style.borderColor='#b72721'; return; }
+  $('humanName').style.borderColor='';
+  const count=Number($('playerCount').value);
+  state={
     playerCount:count,
     hostName:name,
-    seats:[],
-    players:[],
+    players:[{id:'human',name,isBot:false}],
     arrowPool:9,
     turnIndex:0,
     dice:['arrow','dynamite','one','two','beer'],
@@ -561,97 +436,28 @@ function freshState(count,name){
     winners:[],
     threePlayerSuddenDeath:false,
     gatlingActivatedThisTurn:false,
-    slabUsedThisTurn:false,
-    turnStarted:false
+    slabUsedThisTurn:false
   };
-}
-
-function setSetupMode(m){
-  setupMode=m;
-  $('tabSolo').classList.toggle('active',m==='solo');
-  $('tabHost').classList.toggle('active',m==='host');
-  $('tabJoin').classList.toggle('active',m==='join');
-  $('paneSeats').style.display=(m==='join')?'none':'block';
-  $('paneJoin').style.display=(m==='join')?'block':'none';
-  $('createBtn').textContent=m==='solo'?'CREATE GAME':m==='host'?'CREATE ONLINE ROOM':'JOIN ROOM';
-  $('setupHint').innerHTML=m==='solo'
-    ? 'Every empty seat is filled automatically with smart bots. The first bot is always <b>Vicki</b>.'
-    : m==='host'
-      ? 'You get a four letter room code to share. Friends join on their own phones, and any seat still empty when you start becomes a bot.'
-      : 'Type the code the host gave you. You will drop into the first free seat at their table.';
-  $('setupNote').textContent='';
-  $('setupNote').classList.remove('bad');
-}
-$('tabSolo').addEventListener('click',()=>setSetupMode('solo'));
-$('tabHost').addEventListener('click',()=>setSetupMode('host'));
-$('tabJoin').addEventListener('click',()=>setSetupMode('join'));
-
-function setupNote(msg,bad=false){ $('setupNote').textContent=msg||''; $('setupNote').classList.toggle('bad',!!bad); }
-function lobbyNote(msg,bad=false){ $('lobbyNote').textContent=msg||''; $('lobbyNote').classList.toggle('bad',!!bad); }
-
-$('createBtn').addEventListener('click',async()=>{
-  const name=$('humanName').value.trim();
-  if(!name){ $('humanName').focus(); $('humanName').style.borderColor='#b72721'; return; }
-  $('humanName').style.borderColor='';
-  const btn=$('createBtn');
-
-  if(setupMode==='solo'){
-    netMode='solo'; MY_ID='p0'; mySeat=0; myRole=null; room=null;
-    state=freshState(Number($('playerCount').value),name);
-    state.seats=[{seat:0,name,isHost:true}];
-    renderLobby(); showScreen('lobbyScreen'); return;
-  }
-
-  if(!supabaseReady()){ setupNote('Add your Supabase URL and anon key near the top of this file to play online.',true); return; }
-  btn.disabled=true;
-  try{
-    if(setupMode==='host') await hostCreateRoom(name,Number($('playerCount').value));
-    else await guestJoinRoom(name,$('joinCode').value.trim().toUpperCase());
-    renderLobby(); showScreen('lobbyScreen');
-  }catch(err){
-    console.error(err);
-    setupNote(err.message||'Could not reach the table. Check your connection and try again.',true);
-  }finally{ btn.disabled=false; }
+  renderLobby(); showScreen('lobbyScreen');
 });
-
-$('backSetupBtn').addEventListener('click',async()=>{ clearSave(); await leaveRoom(); showScreen('setupScreen'); });
-$('copyCodeBtn').addEventListener('click',async()=>{
-  if(!room) return;
-  try{ await navigator.clipboard.writeText(room.code); lobbyNote('Room code copied.'); }
-  catch(e){ lobbyNote('Copy it by hand: '+room.code); }
-});
+$('backSetupBtn').addEventListener('click',()=>showScreen('setupScreen'));
 
 function renderLobby(){
-  const seats=state.seats||[];
-  const open=state.playerCount-seats.length;
-  $('lobbyBadge').textContent=netMode==='solo'?'SOLO ROOM':netMode==='host'?'ONLINE ROOM • YOU ARE HOST':'ONLINE ROOM • GUEST';
-  $('roomCodeBox').style.display=isOnline()?'block':'none';
-  if(room) $('roomCode').textContent=room.code;
-  $('lobbyCaption').textContent=`${state.playerCount}-player game • ${open} empty seat${open===1?'':'s'} will become bot${open===1?'':'s'} when the game starts.`;
+  $('lobbyCaption').textContent=`${state.playerCount}-player game • ${state.playerCount-1} empty seat${state.playerCount-1===1?'':'s'} will become bots when you start.`;
   const box=$('lobbyList'); box.innerHTML='';
   for(let i=0;i<state.playerCount;i++){
-    const seat=seats.find(x=>x.seat===i);
-    const row=document.createElement('div');
-    row.className='seat-row'+(seat&&seat.seat===mySeat&&isOnline()?' mine':'');
-    const label=seat?escapeHtml(seat.name):'Open seat';
-    const tag=seat?(seat.isHost?'HOST':(seat.seat===mySeat&&isOnline()?'YOU':'JOINED')):'BOT ON START';
-    row.innerHTML=`<div class="seat-left"><span class="seat-num">${i+1}</span><span>${label}</span></div><span class="bot-on-start">${tag}</span>`;
+    const row=document.createElement('div'); row.className='seat-row';
+    const occupied=i===0;
+    row.innerHTML=`<div class="seat-left"><span class="seat-num">${i+1}</span><span>${occupied?escapeHtml(state.hostName):'Open seat'}</span></div><span class="bot-on-start">${occupied?'HOST':'BOT ON START'}</span>`;
     box.appendChild(row);
   }
-  $('startBtn').style.display=isHost()?'block':'none';
-  if(netMode==='guest') lobbyNote('Waiting for the host to start the game…');
 }
 
-$('startBtn').addEventListener('click',()=>{ if(isHost()) setupGame(); });
+$('startBtn').addEventListener('click',()=>setupGame());
 function setupGame(){
-  lastCenteredId=null;
-  const seats=state.seats||[];
-  state.players=[];
-  let botIndex=0;
-  for(let i=0;i<state.playerCount;i++){
-    const seat=seats.find(x=>x.seat===i);
-    if(seat) state.players.push({id:'p'+i,name:seat.name,isBot:false});
-    else { state.players.push({id:'p'+i,name:BOT_NAMES[botIndex]||`Bot ${botIndex+1}`,isBot:true}); botIndex++; }
+  while(state.players.length<state.playerCount){
+    const botIndex=state.players.filter(p=>p.isBot).length;
+    state.players.push({id:'bot'+botIndex,name:BOT_NAMES[botIndex]||`Bot ${botIndex+1}`,isBot:true});
   }
   let roles;
   if(state.playerCount===3){ roles=shuffle(['Deputy','Outlaw','Renegade']); }
@@ -667,12 +473,7 @@ function setupGame(){
   } else {
     state.turnIndex=state.players.findIndex(p=>p.role==='Sheriff');
   }
-  if(netMode==='host') netStartGame();
-  showReveal();
-}
-function showReveal(){
-  const me=getPlayer(MY_ID);
-  if(!me) return;
+  const me=getPlayer('human');
   $('roleCover').style.display='grid'; $('roleReveal').style.display='none'; $('enterTableBtn').disabled=true;
   $('humanRole').textContent=me.role.toUpperCase();
   $('roleGoal').textContent=state.playerCount===3 ? threePlayerGoal(me.role) : ROLE_GOALS[me.role];
@@ -681,12 +482,7 @@ function showReveal(){
 }
 function threePlayerGoal(role){ return role==='Deputy'?'Eliminate the Renegade yourself.':role==='Renegade'?'Eliminate the Outlaw yourself.':'Eliminate the Deputy yourself.'; }
 $('roleCover').addEventListener('click',()=>{ $('roleCover').style.display='none'; $('roleReveal').style.display='block'; $('enterTableBtn').disabled=false; });
-$('enterTableBtn').addEventListener('click',async()=>{
-  if(!state||!state.players.length) return;
-  showScreen('gameScreen'); renderGame();
-  if(!isHost()) return;                 // guests just watch until the host drives play
-  await sleep(350); startTurn();
-});
+$('enterTableBtn').addEventListener('click',async()=>{ showScreen('gameScreen'); renderGame(); await sleep(350); startTurn(); });
 
 function buildDie(index){
   const wrap=document.createElement('div'); wrap.className='die-wrap'; wrap.dataset.index=index;
@@ -710,91 +506,61 @@ function renderGame(){
   $('turnName').textContent=p.name;
   $('rollStatus').textContent=state.rollsMade===0 ? (p.isBot?'Bot preparing to roll':'Your turn') : `Roll ${state.rollsMade} of ${state.maxRolls}`;
   $('arrowPool').innerHTML=`<div class="pool-number">${state.arrowPool}</div><div class="pool-label"><span>ARROWS</span><span>LEFT</span></div>`;
-  const strip=$('playersStrip');
-  const keptScroll=strip.scrollLeft;      // rebuilding wipes the scroll position
-  strip.innerHTML='';
-  let activeChip=null;
+  const strip=$('playersStrip'); strip.innerHTML='';
   state.players.forEach(pl=>{
     const chip=document.createElement('button'); chip.className='player-chip'+(pl.id===p.id?' active':'')+(!pl.alive?' dead':''); chip.type='button'; chip.style.setProperty('--player-accent',playerTone(pl.id));
     const dist=distanceFromHuman(pl.id);
-    const distText=pl.id===MY_ID?'YOU':(!pl.alive?'OUT':`DISTANCE ${dist}`);
+    const distText=pl.id==='human'?'YOU':(!pl.alive?'OUT':`DISTANCE ${dist}`);
     chip.innerHTML=`${pl.role==='Sheriff'?'<span class="sheriff-star">★</span>':''}<div class="pname">${escapeHtml(pl.name)}${pl.isBot?' · BOT':''}</div><div class="stats">♥ ${Math.max(0,pl.hp)}/${pl.maxHp} &nbsp;&nbsp; ➶ ${pl.arrows}</div><div class="distance">${distText}</div><div class="char">${escapeHtml(pl.character.name)}${publicRole(pl)?' · '+escapeHtml(pl.role):''}</div>`;
     chip.addEventListener('click',()=>showPlayerInfo(pl.id)); strip.appendChild(chip);
-    if(pl.id===p.id) activeChip=chip;
   });
-  strip.scrollLeft=keptScroll;
-  // Only nudge the strip when the turn actually moves, so scrolling by hand sticks.
-  if(activeChip && lastCenteredId!==p.id){
-    lastCenteredId=p.id;
-    centerChip(strip,activeChip);
-  }
   for(let i=0;i<5;i++){
     const wrap=$('diceRow').children[i]; wrap.classList.toggle('held',!!state.held[i]&&!state.locked[i]); wrap.classList.toggle('locked',!!state.locked[i]);
     const die=wrap.querySelector('.die'); die.style.transform=ROTATION[state.dice[i]];
   }
-  const humanTurn=!p.isBot && p.alive && !state.gameOver && p.id===MY_ID;
+  const humanTurn=!p.isBot && p.alive && !state.gameOver;
   $('rollBtn').style.display=humanTurn?'block':'none';
   $('botThinking').style.display=p.isBot?'flex':'none';
   if(humanTurn){
-    $('rollBtn').disabled=animating||state.resolving||(netMode==='guest'&&guestWaiting);
+    $('rollBtn').disabled=animating||state.resolving;
     $('rollBtn').textContent=state.rollsMade===0?'ROLL DICE':'ROLL AGAIN';
     $('resolveBtn').style.display=(state.rollsMade>0 && state.rollsMade<state.maxRolls && !state.resolving)?'block':'none';
     $('tapHint').textContent=state.rollsMade>0?'Tap dice to hold or release them. Dynamite locks automatically.':'';
   } else {
-    $('resolveBtn').style.display='none';
-    $('tapHint').textContent=(!p.isBot && p.id!==MY_ID && p.alive && !state.gameOver)?`Waiting for ${p.name}…`:'';
+    $('resolveBtn').style.display='none'; $('tapHint').textContent=p.isBot?'':'';
   }
-  if(netMode==='host') pushState();
-  saveSoon();
-}
-
-let lastCenteredId=null;
-function centerChip(strip,chip){
-  const target=chip.offsetLeft-(strip.clientWidth-chip.offsetWidth)/2;
-  const left=Math.max(0,Math.min(target,strip.scrollWidth-strip.clientWidth));
-  try{ strip.scrollTo({left,behavior:'smooth'}); }
-  catch(e){ strip.scrollLeft=left; }
 }
 
 function toggleHold(i){
   if(animating||state.resolving) return;
   const p=currentPlayer(); if(p.isBot||state.rollsMade===0||state.rollsMade>=state.maxRolls) return;
-  if(p.id!==MY_ID) return;
   if(state.locked[i]) return;
-  if(netMode==='guest'){ state.held[i]=!state.held[i]; renderGame(); netSend('input',{action:'hold',index:i}); return; }
   state.held[i]=!state.held[i]; renderGame();
 }
 $('rollBtn').addEventListener('click',async()=>{
   if(animating||state.resolving) return;
-  const p=currentPlayer(); if(p.isBot||p.id!==MY_ID) return;
-  if(netMode==='guest'){ markGuestWaiting(); $('rollBtn').disabled=true; netSend('input',{action:'roll'}); return; }
+  const p=currentPlayer(); if(p.isBot) return;
   const indices=state.rollsMade===0?[0,1,2,3,4]:[0,1,2,3,4].filter(i=>!state.held[i]&&!state.locked[i]);
   if(!indices.length){ await resolveTurn(); return; }
   await performRoll(indices);
 });
-$('resolveBtn').addEventListener('click',()=>{
-  const p=currentPlayer(); if(!p||p.id!==MY_ID) return;
-  if(netMode==='guest'){ markGuestWaiting(); $('resolveBtn').disabled=true; netSend('input',{action:'resolve'}); return; }
-  resolveTurn();
-});
+$('resolveBtn').addEventListener('click',()=>resolveTurn());
 
 async function performRoll(indices){
-  if(!isHost()) return;
   const p=currentPlayer(); if(!p?.alive||state.gameOver) return;
   animating=true; state.rollsMade++;
   const rolledFaces=[];
   indices.forEach(i=>{ state.dice[i]=randFace(); state.held[i]=false; rolledFaces.push([i,state.dice[i]]); });
-  if(netMode==='host') netSend('anim',{indices,dice:state.dice.slice()});
   renderGame(); animateDice(indices);
   await sleep(760);
   indices.forEach(i=>$('diceRow').children[i].querySelector('.die').classList.remove('rolling'));
   animating=false;
-  // Arrow faces take effect immediately after every roll, counted as one batch
-  // so three Arrows read as one message instead of three.
-  const arrowsRolled=rolledFaces.filter(([i,face])=>face==='arrow').length;
-  if(arrowsRolled){
-    await giveArrows(p.id,arrowsRolled);
-    if(state.gameOver || !p.alive) return;
+  // Arrow faces take effect immediately after every roll.
+  for(const [i,face] of rolledFaces){
+    if(face==='arrow'){
+      await giveArrow(p.id);
+      if(state.gameOver || !p.alive) return;
+    }
   }
   updateDynamiteLocks(); renderGame();
   if(state.gameOver || !p.alive) return;
@@ -826,38 +592,13 @@ function updateDynamiteLocks(){
 }
 function countFace(face){ return state.dice.filter(f=>f===face).length; }
 
-function arrowWord(n){ return n===1?'an arrow':`${n} arrows`; }
-
-// Takes several arrows at once and reports them in a single message. If the
-// pool runs dry partway through, whatever has been taken so far is announced
-// before the attack resolves, then the rest are drawn from the refilled pool.
-async function giveArrows(playerId,count=1){
+async function giveArrow(playerId){
   const p=getPlayer(playerId); if(!p?.alive) return;
-  let taken=0;
-  const flush=async()=>{
-    if(!taken) return;
-    const n=taken; taken=0;
-    log(`${p.name} takes ${arrowWord(n)}.`,p.id,'arrow'); renderGame();
-    await announce(`${p.name} takes ${arrowWord(n)} ➶`,false,ACTION_MESSAGE_MS,p.id);
-  };
-  for(let i=0;i<count;i++){
-    if(!p.alive||state.gameOver) break;
-    if(state.arrowPool<=0){
-      await flush();
-      await resolveIndianAttack();
-      if(!p.alive||state.gameOver) break;
-    }
-    p.arrows++; state.arrowPool--; taken++;
-    if(state.arrowPool===0){
-      await flush();
-      await resolveIndianAttack();
-      if(!p.alive||state.gameOver) break;
-    }
-  }
-  await flush();
-  renderGame();
+  if(state.arrowPool<=0) await resolveIndianAttack();
+  p.arrows++; state.arrowPool--; log(`${p.name} takes an arrow.`,p.id,'arrow'); renderGame();
+  await announce(`${p.name} takes an arrow ➶`,false,ACTION_MESSAGE_MS,p.id);
+  if(state.arrowPool===0) await resolveIndianAttack();
 }
-async function giveArrow(playerId){ return giveArrows(playerId,1); }
 async function resolveIndianAttack(){
   log('ARROW ATTACK — the pool emptied and everyone resolves their arrows.',null,'system');
   await Promise.all([playArrowStormFx(),announce('ARROW ATTACK!',true,MAJOR_MESSAGE_MS)]);
@@ -868,7 +609,7 @@ async function resolveIndianAttack(){
 }
 
 async function resolveTurn(fromDynamite=false){
-  if(!isHost()||state.resolving||state.gameOver) return;
+  if(state.resolving||state.gameOver) return;
   state.resolving=true; const p=currentPlayer();
   $('resolveBtn').style.display='none'; $('rollBtn').disabled=true;
   const dyn=countFace('dynamite');
@@ -881,22 +622,12 @@ async function resolveTurn(fromDynamite=false){
 
   const snapshot=alivePlayers().map(x=>x.id);
   const selected=[];
-  // Only shots with a legal target get asked about, so "shot 2 of 3" matches
-  // the number of prompts the player actually sees.
-  const liveShots=shots.filter(sh=>legalTargets(p.id,sh.face,snapshot).length);
-  for(let n=0;n<liveShots.length;n++){
-    const shot=liveShots[n];
+  for(const shot of shots){
     const candidates=legalTargets(p.id,shot.face,snapshot);
     if(!candidates.length) continue;
     let targetId;
     if(p.isBot){ targetId=botChooseAttackTarget(p,candidates,shot.face); await botPause(); }
-    else {
-      if(n>0) await promptBeat();
-      const title=liveShots.length>1?`${FACE_LABEL[shot.face]} — shot ${n+1} of ${liveShots.length}`:`${FACE_LABEL[shot.face]}`;
-      const picked=selected.map(x=>getPlayer(x.targetId)?.name).filter(Boolean);
-      const text=picked.length?`Choose a target. Already aimed at: ${picked.join(', ')}.`:'Choose a legal target.';
-      targetId=await askChoosePlayer(p.id,title,text,candidates,false);
-    }
+    else targetId=await choosePlayer(`${FACE_LABEL[shot.face]}`,'Choose a legal target.',candidates,false);
     if(targetId) selected.push({targetId,damage:shot.damage,face:shot.face,distance:tableDistance(p.id,targetId,snapshot)});
   }
   if(charIs(p,'Slab the Killer') && beers>0 && selected.length && !state.slabUsedThisTurn){
@@ -904,8 +635,8 @@ async function resolveTurn(fromDynamite=false){
     if(p.isBot){
       chosenIndex=botChooseSlabShot(p,selected);
     } else {
-      const use=await askYesNoOf(p.id,'Slab the Killer','Spend one Beer result to make one of your chosen Bull’s-eye attacks deal 2 damage?');
-      if(use) chosenIndex=await askShotToDouble(p.id,selected);
+      const use=await askYesNo('Slab the Killer','Spend one Beer result to make one of your chosen Bull’s-eye attacks deal 2 damage?');
+      if(use) chosenIndex=await chooseShotToDouble(selected);
     }
     if(chosenIndex>=0){ selected[chosenIndex].damage=2; beers--; state.slabUsedThisTurn=true; log(`${p.name} used Slab the Killer's ability.`); }
   }
@@ -920,24 +651,17 @@ async function resolveTurn(fromDynamite=false){
   await checkWin(); if(state.gameOver){ state.resolving=false; return; }
 
   // Beer is after shots.
-  const beerTotal=beers;
-  const healed=[];
   for(let b=0;b<beers;b++){
     const candidates=alivePlayers().map(x=>x.id);
     if(!candidates.length) break;
     let targetId;
     if(p.isBot){ targetId=botChooseBeerTarget(p,candidates); await botPause(); }
-    else {
-      if(b>0) await promptBeat();
-      const title=beerTotal>1?`Beer — heal ${b+1} of ${beerTotal}`:'Beer';
-      const text=healed.length?`Choose a player to heal. Already healed: ${healed.join(', ')}.`:'Choose a player to heal.';
-      targetId=await askChoosePlayer(p.id,title,text,candidates,false);
-    }
+    else targetId=await choosePlayer('Beer','Choose a player to heal.',candidates,false);
     if(targetId){
       const t=getPlayer(targetId); const before=t.hp; let heal=1;
       if(charIs(p,'Jesse Jones') && targetId===p.id && p.hp<=4) heal=2;
       t.hp=clamp(t.hp+heal,0,t.maxHp);
-      const gained=t.hp-before; healed.push(t.name); log(`${p.name} gave Beer to ${t.name}${gained?` (+${gained} life)`:' (already at maximum)'}.`);
+      const gained=t.hp-before; log(`${p.name} gave Beer to ${t.name}${gained?` (+${gained} life)`:' (already at maximum)'}.`);
       if(targetId===state.players.find(x=>x.role==='Sheriff')?.id && gained>0) state.suspicion[p.id]-=2;
       renderGame();
     }
@@ -951,11 +675,7 @@ async function resolveTurn(fromDynamite=false){
       if(!candidates.length) break;
       let targetId;
       if(p.isBot) targetId=botChooseArrowRemoval(p,candidates);
-      else {
-        if(g>0) await promptBeat();
-        const title=gatlings>1?`Kit Carlson — arrow ${g+1} of ${gatlings}`:'Kit Carlson';
-        targetId=await askChoosePlayer(p.id,title,'Remove one arrow from a player, or skip.',candidates,true);
-      }
+      else targetId=await choosePlayer('Kit Carlson','Remove one arrow from a player, or skip.',candidates,true);
       if(targetId){ const t=getPlayer(targetId); t.arrows--; state.arrowPool++; log(`${p.name} removed one of ${t.name}'s arrows.`); renderGame(); }
     }
   }
@@ -988,12 +708,12 @@ async function loseLife(playerId,amount,ctx){
     if(charIs(p,'Bart Cassidy') && (ctx.type==='shot'||ctx.type==='gatling') && state.arrowPool>1){
       let use;
       if(p.isBot) use=(p.hp<=3 || state.arrowPool>=5);
-      else use=await askYesNoOf(p.id,'Bart Cassidy',`Take an arrow instead of losing 1 life? (${state.arrowPool} arrows remain in the pool.)`);
+      else use=await askYesNo('Bart Cassidy',`Take an arrow instead of losing 1 life? (${state.arrowPool} arrows remain in the pool.)`);
       if(use){ substituted++; await giveArrow(p.id); continue; }
     }
     p.hp--; actualLost++;
     if(charIs(p,'Pedro Ramirez') && p.arrows>0 && ctx.type!=='indians'){
-      let use=p.isBot ? true : await askYesNoOf(p.id,'Pedro Ramirez','Discard one of your arrows after losing this life point?');
+      let use=p.isBot ? true : await askYesNo('Pedro Ramirez','Discard one of your arrows after losing this life point?');
       if(use && p.arrows>0){ p.arrows--; state.arrowPool++; log(`${p.name} discarded an arrow with Pedro Ramirez's ability.`,p.id,'ability'); }
     }
     if(p.hp<=0){ fell=true; break; }
@@ -1056,31 +776,26 @@ async function checkWin(){
 }
 async function endGame(ids,reason){
   if(state.gameOver) return; state.gameOver=true; state.winners=ids; state.resolving=false;
-  state.players.forEach(p=>p.revealedRole=true);   // the table shows every role once it is over
   await sleep(650); const names=ids.map(id=>getPlayer(id)?.name).filter(Boolean);
   $('winnerText').innerHTML=`${escapeHtml(names.join(', ')||'No survivor')}<br><span class="small">${escapeHtml(reason)}</span>`;
   $('finalRoles').innerHTML=state.players.map(p=>`<div class="seat-row"><div><b>${escapeHtml(p.name)}</b><div class="small">${escapeHtml(p.character.name)}</div></div><span class="role-pill ${roleClass(p.role)}">${escapeHtml(p.role)}</span></div>`).join('');
-  if(netMode==='host'){ pushStateNow(); netSend('over',{ids,reason}); markRoomFinished(); }
-  clearSave();
   showScreen('gameOverScreen');
 }
-$('newGameBtn').addEventListener('click',async()=>{ clearSave(); await leaveRoom(); state=null; $('diceRow').innerHTML=''; showScreen('setupScreen'); });
+$('newGameBtn').addEventListener('click',()=>{ state=null; $('diceRow').innerHTML=''; showScreen('setupScreen'); });
 
 function nextTurn(){
-  if(!isHost()||state.gameOver) return;
+  if(state.gameOver) return;
   let idx=state.turnIndex; do{ idx=(idx+1)%state.players.length; }while(!state.players[idx].alive);
-  state.turnIndex=idx; state.dice=['arrow','dynamite','one','two','beer']; state.held=[false,false,false,false,false]; state.locked=[false,false,false,false,false]; state.rollsMade=0; state.resolving=false; state.gatlingActivatedThisTurn=false; state.slabUsedThisTurn=false; state.turnStarted=false;
+  state.turnIndex=idx; state.dice=['arrow','dynamite','one','two','beer']; state.held=[false,false,false,false,false]; state.locked=[false,false,false,false,false]; state.rollsMade=0; state.resolving=false; state.gatlingActivatedThisTurn=false; state.slabUsedThisTurn=false;
   state.maxRolls=charIs(currentPlayer(),'Lucky Duke')?4:3; renderGame(); setTimeout(startTurn,currentPlayer().isBot?BOT_ACTION_DELAY_MS:700);
 }
 async function startTurn(){
-  if(!isHost()||state.gameOver) return; const p=currentPlayer(); if(!p.alive){ nextTurn(); return; }
+  if(state.gameOver) return; const p=currentPlayer(); if(!p.alive){ nextTurn(); return; }
   state.maxRolls=charIs(p,'Lucky Duke')?4:3; renderGame();
-  const firstTimeThisTurn=!state.turnStarted;
-  state.turnStarted=true;
-  if(firstTimeThisTurn && charIs(p,'Sid Ketchum')){
+  if(charIs(p,'Sid Ketchum')){
     const candidates=alivePlayers().map(x=>x.id); let targetId;
     if(p.isBot){ targetId=botChooseBeerTarget(p,candidates); await botPause(); }
-    else targetId=await askChoosePlayer(p.id,'Sid Ketchum','At the start of your turn, heal one alive player by 1.',candidates,false);
+    else targetId=await choosePlayer('Sid Ketchum','At the start of your turn, heal one alive player by 1.',candidates,false);
     if(targetId){ const t=getPlayer(targetId); const before=t.hp; t.hp=Math.min(t.maxHp,t.hp+1); if(t.hp>before) log(`${p.name} healed ${t.name} by 1 at the start of the turn.`); renderGame(); }
   }
   if(p.isBot) await botTurn(p);
@@ -1092,7 +807,14 @@ async function botTurn(p){
     const indices=state.rollsMade===0?[0,1,2,3,4]:[0,1,2,3,4].filter(i=>!state.held[i]&&!state.locked[i]);
     if(!indices.length) break;
     await botPause(); await performRoll(indices);
-    if(state.gameOver||!p.alive||state.resolving||currentPlayer().id!==p.id) return;
+    // Never leave the game stuck on a bot that was eliminated during its own turn.
+    if(state.gameOver) return;
+    if(!p.alive){
+      state.resolving=false;
+      nextTurn();
+      return;
+    }
+    if(state.resolving||currentPlayer().id!==p.id) return;
     if(state.rollsMade>=state.maxRolls) return; // performRoll resolves final automatically
     botChooseHolds(p); renderGame();
     const rerollable=[0,1,2,3,4].filter(i=>!state.held[i]&&!state.locked[i]);
@@ -1249,10 +971,10 @@ function tableDistance(fromId,toId,snapshotIds=alivePlayers().map(p=>p.id)){
   return Math.min(clockwise,counter);
 }
 function distanceFromHuman(toId){
-  if(toId===MY_ID) return 0;
+  if(toId==='human') return 0;
   const target=getPlayer(toId);
   if(!target?.alive) return '—';
-  return tableDistance(MY_ID,toId);
+  return tableDistance('human',toId);
 }
 function legalTargets(attackerId,face,snapshotIds){
   const p=getPlayer(attackerId); const ids=snapshotIds.filter(id=>getPlayer(id)?.alive); if(ids.length<=1) return [];
@@ -1302,34 +1024,11 @@ function askYesNo(title,text){
 }
 function closeChoice(){ $('choiceBackdrop').classList.remove('show'); }
 
-// A short gap with the panel fully shut between back-to-back questions. Without
-// it the next question replaces the last one in place and reads as a dead tap.
-async function promptBeat(){
-  closeChoice();
-  await sleep(360);
-}
-
 function showPlayerInfo(id){
   const p=getPlayer(id); if(!p) return;
-  const role=publicRole(p)||p.id===MY_ID?`<span class="role-pill ${roleClass(p.role)}">${escapeHtml(p.role)}</span>`:'<span class="role-pill">SECRET ROLE</span>';
-  const distanceHtml=p.id===MY_ID
-    ? '<span>This is you</span>'
-    : (!p.alive ? '<span>Out of the game</span>'
-                : `<span>Distance from you</span> <b>${distanceFromHuman(p.id)}</b>`);
-  $('infoContent').innerHTML=`
-    <div class="pcard-top">
-      <div>
-        <div class="pcard-name">${escapeHtml(p.name)}${p.isBot?' <span class="pcard-bot">BOT</span>':''}</div>
-        ${role}
-      </div>
-      <div class="pcard-vitals">
-        <div class="pcard-stat life"><span class="glyph">♥</span><span class="val">${Math.max(0,p.hp)}<span class="of">/${p.maxHp}</span></span></div>
-        <div class="pcard-stat arrows"><span class="glyph">➶</span><span class="val">${p.arrows}</span></div>
-      </div>
-    </div>
-    <div class="pcard-distance">${distanceHtml}</div>
-    <div class="character-panel"><strong>${escapeHtml(p.character.name)}</strong><p style="margin:8px 0 0;font-size:16px">${escapeHtml(p.character.desc)}</p></div>
-    ${!p.alive?'<div class="pcard-dead">Eliminated</div>':''}`;
+  const role=publicRole(p)||p.id==='human'?`<span class="role-pill ${roleClass(p.role)}">${escapeHtml(p.role)}</span>`:'<span class="role-pill">SECRET ROLE</span>';
+  const distanceLine=p.id==='human'?'You':(!p.alive?'Eliminated':`Distance from you: ${distanceFromHuman(p.id)}`);
+  $('infoContent').innerHTML=`<h2>${escapeHtml(p.name)} ${p.isBot?'<span class="small">BOT</span>':''}</h2><p>${role}</p><p><b>♥ ${p.hp}/${p.maxHp}</b> &nbsp; <b>➶ ${p.arrows}</b></p><p><b>${escapeHtml(distanceLine)}</b></p><div class="character-panel"><strong>${escapeHtml(p.character.name)}</strong><p style="margin:8px 0 0">${escapeHtml(p.character.desc)}</p></div>${!p.alive?'<p><b>Eliminated</b></p>':''}`;
   $('infoBackdrop').classList.add('show');
 }
 $('closeInfoBtn').addEventListener('click',()=>$('infoBackdrop').classList.remove('show'));
@@ -1363,12 +1062,23 @@ function showRules(){
 
   <h3>Roles and Winning</h3>
   <ul>
-    <li><b>Sheriff</b> — revealed from the start, gets +2 life. Wins with the Deputies when every Outlaw and Renegade is gone.</li>
-    <li><b>Deputy</b> — secretly protects the Sheriff and wins alongside him.</li>
-    <li><b>Outlaw</b> — wins the moment the Sheriff is eliminated.</li>
-    <li><b>Renegade</b> — wants to be the last player standing: the Sheriff must fall, but only with the Renegade still alive and alone.</li>
+    <li><b>Sheriff</b> — revealed from the start, gets +2 life. In a normal game, wins with the Deputies when every Outlaw and Renegade is gone.</li>
+    <li><b>Deputy</b> — secretly protects the Sheriff and wins alongside him in a normal game.</li>
+    <li><b>Outlaw</b> — wins the moment the Sheriff is eliminated in a normal game.</li>
+    <li><b>Renegade</b> — wants to be the last character alive in a normal game.</li>
   </ul>
-  <p>In a three-player game there are no teams — roles are all revealed and the last player alive wins.</p>
+
+  <h3>Three-Player Game — Personal Targets</h3>
+  <p>In a three-player game, the roles are <b>Deputy, Renegade, and Outlaw</b>. There are no teams. Each player has one specific player they must personally eliminate:</p>
+  <div class="rules-body">
+    <b class="sym">D</b><span><b>Deputy</b> must personally eliminate the <b>Renegade</b>.</span>
+    <b class="sym">R</b><span><b>Renegade</b> must personally eliminate the <b>Outlaw</b>.</span>
+    <b class="sym">O</b><span><b>Outlaw</b> must personally eliminate the <b>Deputy</b>.</span>
+  </div>
+  <p><b>If you personally deal the final blow to your assigned target, you win immediately.</b></p>
+  <p>If your assigned target is eliminated by <b>another player</b> or by a <b>game effect</b> such as an Arrow Attack or Dynamite, you do <b>not</b> win. Instead, the game enters <b>Sudden Death</b>.</p>
+  <p>During Sudden Death, the original targets no longer matter. The remaining players fight normally, and <b>the last player alive wins</b>.</p>
+  <p><b>Example:</b> If Bev is the Deputy and Zella is her Renegade target, Bev wins only if Bev herself deals the final damage that eliminates Zella. If Vicki, an Arrow Attack, Dynamite, or another game effect eliminates Zella instead, Bev and the remaining player enter Sudden Death.</p>
 
   <h3>Damage and Elimination</h3>
   <p>Lose all your life points and you are out. Beer can heal you at any time before that, but never past your character's starting life total.</p>
@@ -1393,529 +1103,6 @@ function escapeHtml(s){ return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;'
 
 // Close info modal by tapping the dark area.
 $('infoBackdrop').addEventListener('click',e=>{ if(e.target===$('infoBackdrop')) $('infoBackdrop').classList.remove('show'); });
-
-
-
-// ==================================================================
-//  MULTIPLAYER TRANSPORT
-//  The host device runs the exact same game engine as solo play and
-//  is the single source of truth. Guests render snapshots and send
-//  their taps back. No rule ever runs twice.
-// ==================================================================
-
-function supabaseReady(){
-  return !!(window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY
-            && !SUPABASE_URL.startsWith('PASTE') && !SUPABASE_ANON_KEY.startsWith('PASTE'));
-}
-function sbClient(){
-  if(!sb) sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { realtime:{ params:{ eventsPerSecond: 20 } } });
-  return sb;
-}
-function makeCode(){
-  const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // no I, O, 0, 1
-  return Array.from({length:4},()=>A[cryptoInt(A.length)]).join('');
-}
-
-// ---------- room lifecycle ----------
-
-async function hostCreateRoom(name,count){
-  const db=sbClient();
-  let code=null, lastErr=null;
-  for(let i=0;i<6 && !code;i++){
-    const tryCode=makeCode();
-    const {error}=await db.from('bang_rooms').insert({code:tryCode,host_name:name,player_count:count,status:'lobby'});
-    if(!error) code=tryCode; else lastErr=error;
-  }
-  if(!code) throw new Error(lastErr?.message||'Could not create a room. Did you run the SQL setup?');
-
-  const {error:pe}=await db.from('bang_players').insert({room_code:code,seat:0,player_id:'p0',name,is_host:true,client_id:CLIENT_ID});
-  if(pe) throw new Error(pe.message);
-
-  netMode='host'; MY_ID='p0'; mySeat=0; myRole=null;
-  room={code,playerCount:count,status:'lobby'};
-  state=freshState(count,name);
-  await openChannel(code);
-  await refreshRoster();
-}
-
-async function guestJoinRoom(name,code){
-  if(!/^[A-Z0-9]{4}$/.test(code)) throw new Error('Room codes are four letters or numbers.');
-  const db=sbClient();
-  const {data:r,error}=await db.from('bang_rooms').select('*').eq('code',code).maybeSingle();
-  if(error) throw new Error(error.message);
-  if(!r) throw new Error('No table with that code. Check the letters and try again.');
-  if(r.status!=='lobby') throw new Error('That game has already started.');
-
-  const {data:existing}=await db.from('bang_players').select('*').eq('room_code',code);
-  const mine=(existing||[]).find(x=>x.client_id===CLIENT_ID);
-  let seat=mine?mine.seat:-1;
-
-  if(seat<0){
-    const taken=new Set((existing||[]).map(x=>x.seat));
-    for(let i=1;i<r.player_count;i++){ if(!taken.has(i)){ seat=i; break; } }
-    if(seat<0) throw new Error('That table is full.');
-    const {error:ie}=await db.from('bang_players').insert({room_code:code,seat,player_id:'p'+seat,name,client_id:CLIENT_ID});
-    if(ie) throw new Error('Someone took that seat first. Try joining again.');
-  } else {
-    await db.from('bang_players').update({name}).eq('room_code',code).eq('client_id',CLIENT_ID);
-  }
-
-  netMode='guest'; mySeat=seat; MY_ID='p'+seat; myRole=null;
-  room={code,playerCount:r.player_count,status:'lobby'};
-  state=freshState(r.player_count,r.host_name);
-  await openChannel(code);
-  await refreshRoster();
-}
-
-async function refreshRoster(){
-  if(!isOnline()||!room) return;
-  const {data}=await sbClient().from('bang_players').select('*').eq('room_code',room.code).order('seat');
-  roster=data||[];
-  if(state) state.seats=roster.map(x=>({seat:x.seat,name:x.name,isHost:x.is_host}));
-  if($('lobbyScreen').classList.contains('active')) renderLobby();
-}
-
-async function leaveRoom(){
-  try{
-    if(isOnline() && room){
-      if(netMode==='guest'){
-        await sbClient().from('bang_players').delete().eq('room_code',room.code).eq('client_id',CLIENT_ID);
-      } else {
-        netSend('closed',{});
-        await sbClient().from('bang_rooms').delete().eq('code',room.code);
-      }
-    }
-  }catch(e){ console.warn(e); }
-  if(chan){ try{ await sbClient().removeChannel(chan); }catch(e){} }
-  chan=null; room=null; roster=[]; netMode='solo'; MY_ID='p0'; mySeat=0; myRole=null;
-}
-
-async function markRoomFinished(){
-  if(netMode!=='host'||!room) return;
-  try{ await sbClient().from('bang_rooms').update({status:'finished',updated_at:new Date().toISOString()}).eq('code',room.code); }catch(e){}
-}
-
-// ---------- channel ----------
-
-async function openChannel(code){
-  const db=sbClient();
-  chan=db.channel('bang-'+code,{config:{broadcast:{self:false,ack:false}}});
-  chan.on('broadcast',{event:'msg'},({payload})=>{ try{ onNetMessage(payload); }catch(e){ console.error(e); } });
-  chan.on('postgres_changes',{event:'*',schema:'public',table:'bang_players',filter:'room_code=eq.'+code},()=>refreshRoster());
-  await new Promise((resolve,reject)=>{
-    let settled=false;
-    chan.subscribe(status=>{
-      if(status==='SUBSCRIBED'&&!settled){ settled=true; resolve(); }
-      if((status==='CHANNEL_ERROR'||status==='TIMED_OUT')&&!settled){ settled=true; reject(new Error('Realtime connection failed. Check that Realtime is enabled for this project.')); }
-    });
-    setTimeout(()=>{ if(!settled){ settled=true; resolve(); } },6000);
-  });
-}
-
-function netSend(type,data){
-  if(!chan) return;
-  try{ chan.send({type:'broadcast',event:'msg',payload:Object.assign({type,from:MY_ID},data)}); }
-  catch(e){ console.warn('send failed',e); }
-}
-
-// ---------- state sync ----------
-
-function snapshot(){
-  return {
-    playerCount:state.playerCount,
-    hostName:state.hostName,
-    arrowPool:state.arrowPool,
-    turnIndex:state.turnIndex,
-    dice:state.dice.slice(),
-    held:state.held.slice(),
-    locked:state.locked.slice(),
-    rollsMade:state.rollsMade,
-    maxRolls:state.maxRolls,
-    resolving:state.resolving,
-    gameOver:state.gameOver,
-    winners:state.winners.slice(),
-    threePlayerSuddenDeath:state.threePlayerSuddenDeath,
-    log:state.log.slice(0,50),
-    seats:state.seats||[],
-    players:state.players.map(p=>({
-      id:p.id, name:p.name, isBot:p.isBot, hp:p.hp, maxHp:p.maxHp, baseMax:p.baseMax,
-      arrows:p.arrows, alive:p.alive, revealedRole:p.revealedRole, character:p.character,
-      // secret roles are stripped; each player is told their own privately
-      role:(state.playerCount===3||p.revealedRole||!p.alive||p.role==='Sheriff')?p.role:null
-    }))
-  };
-}
-
-function applySnapshot(snap){
-  clearGuestWait();
-  const keep=state?{suspicion:state.suspicion||{}}:{suspicion:{}};
-  state=Object.assign({
-    suspicion:keep.suspicion, gatlingActivatedThisTurn:false, slabUsedThisTurn:false
-  },snap);
-  state.players.forEach(p=>{
-    if(p.id===MY_ID && myRole) p.role=myRole;
-    if(!p.role) p.role='Unknown';
-  });
-  if($('gameScreen').classList.contains('active')) renderGame();
-}
-
-function markGuestWaiting(){
-  guestWaiting=true;
-  clearTimeout(guestWaitTimer);
-  // If the host's answer never lands, hand the controls back rather than freezing.
-  guestWaitTimer=setTimeout(()=>{ guestWaiting=false; if($('gameScreen').classList.contains('active')) renderGame(); },5000);
-}
-function clearGuestWait(){ guestWaiting=false; clearTimeout(guestWaitTimer); }
-
-function pushState(){
-  if(netMode!=='host'||!chan) return;
-  clearTimeout(statePushTimer);
-  statePushTimer=setTimeout(pushStateNow,70);
-}
-function pushStateNow(){
-  if(netMode!=='host'||!chan||!state||!state.players.length) return;
-  clearTimeout(statePushTimer);
-  netSend('state',{snap:snapshot()});
-}
-
-// ---------- starting the game ----------
-
-function netStartGame(){
-  if(netMode!=='host'||!room) return;
-  myRole=getPlayer(MY_ID)?.role||null;
-  const snap=snapshot();
-  state.players.forEach(p=>{
-    if(p.isBot||p.id===MY_ID) return;
-    netSend('start',{to:p.id,role:p.role,snap});
-  });
-  sbClient().from('bang_rooms').update({status:'playing',updated_at:new Date().toISOString()}).eq('code',room.code).then(()=>{},()=>{});
-}
-
-// ---------- inbound messages ----------
-
-function onNetMessage(m){
-  if(!m||!m.type) return;
-  if(m.to && m.to!==MY_ID) return;
-
-  switch(m.type){
-    case 'start':
-      if(netMode!=='guest') return;
-      myRole=m.role||null;
-      applySnapshot(m.snap);
-      showReveal();
-      showScreen('revealScreen');
-      break;
-
-    case 'state':
-      if(netMode!=='guest') return;
-      applySnapshot(m.snap);
-      break;
-
-    case 'anim':
-      if(netMode!=='guest'||!state) return;
-      state.dice=m.dice.slice();
-      renderGame();
-      animateDice(m.indices);
-      break;
-
-    case 'fx': {
-      if(netMode!=='guest') return;
-      const a=m.args||[];
-      if(m.kind==='announce') announceLocal(a[0],a[1],a[2],a[3]);
-      else if(m.kind==='shot') playShotFxLocal(a[0],a[1],a[2]);
-      else if(m.kind==='gatling') playGatlingFxLocal();
-      else if(m.kind==='storm') playArrowStormFxLocal();
-      break;
-    }
-
-    case 'ask':
-      if(netMode!=='guest') return;
-      handleRemoteAsk(m);
-      break;
-
-    case 'answer':
-      if(netMode!=='host') return;
-      if(pendingAsks[m.rid]) pendingAsks[m.rid](m.value);
-      break;
-
-    case 'input':
-      if(netMode!=='host') return;
-      handleGuestInput(m);
-      break;
-
-    case 'resync': {
-      // A guest reloaded and needs the table back.
-      if(netMode!=='host'||!state||!state.players.length) return;
-      const who=getPlayer(m.from);
-      netSend('sync',{to:m.from,role:who?who.role:null,snap:snapshot()});
-      break;
-    }
-
-    case 'sync':
-      if(netMode!=='guest') return;
-      if(m.role) myRole=m.role;
-      applySnapshot(m.snap);
-      saveNow();
-      if(!$('gameScreen').classList.contains('active')){ showScreen('gameScreen'); renderGame(); }
-      break;
-
-    case 'over':
-      if(netMode!=='guest') return;
-      showEndScreen(m.ids,m.reason);
-      break;
-
-    case 'closed':
-      if(netMode!=='guest') return;
-      announceLocal('The host closed the table.',true,MAJOR_MESSAGE_MS);
-      break;
-  }
-}
-
-// ---------- host: acting on a guest's taps ----------
-
-async function handleGuestInput(m){
-  if(!state||state.gameOver){ pushStateNow(); return; }
-  const p=currentPlayer();
-  if(!p||p.id!==m.from||p.isBot){ pushStateNow(); return; }   // only the seat whose turn it is
-  if(m.action==='hold'){
-    if(animating||state.resolving){ pushStateNow(); return; }
-    if(state.rollsMade===0||state.rollsMade>=state.maxRolls){ pushStateNow(); return; }
-    if(state.locked[m.index]){ pushStateNow(); return; }
-    state.held[m.index]=!state.held[m.index];
-    renderGame();
-    return;
-  }
-  if(m.action==='roll'){
-    if(animating||state.resolving){ pushStateNow(); return; }
-    const indices=state.rollsMade===0?[0,1,2,3,4]:[0,1,2,3,4].filter(i=>!state.held[i]&&!state.locked[i]);
-    if(!indices.length){ await resolveTurn(); return; }
-    await performRoll(indices);
-    return;
-  }
-  if(m.action==='resolve'){ await resolveTurn(); return; }
-}
-
-// ---------- prompts ----------
-
-function askChoosePlayer(ownerId,title,text,candidates,allowSkip=false){
-  if(ownerId===MY_ID) return choosePlayer(title,text,candidates,allowSkip);
-  return remoteAsk(ownerId,{k:'choose',title,text,candidates,allowSkip},allowSkip?null:candidates[0]);
-}
-function askYesNoOf(ownerId,title,text){
-  if(ownerId===MY_ID) return askYesNo(title,text);
-  return remoteAsk(ownerId,{k:'yesno',title,text},false);
-}
-function askShotToDouble(ownerId,selected){
-  if(ownerId===MY_ID) return chooseShotToDouble(selected);
-  return remoteAsk(ownerId,{k:'double',targets:selected.map(x=>x.targetId)},0);
-}
-
-function remoteAsk(playerId,spec,fallback){
-  if(netMode!=='host') return Promise.resolve(fallback);
-  const target=getPlayer(playerId);
-  return new Promise(resolve=>{
-    const rid=Math.random().toString(36).slice(2);
-    let done=false;
-    const finish=v=>{ if(done) return; done=true; delete pendingAsks[rid]; clearTimeout(timer); resolve(v); };
-    const timer=setTimeout(()=>{
-      if(done) return;
-      announceLocal(`${target?target.name:'That player'} took too long — the table decided for them.`,false,ACTION_MESSAGE_MS);
-      finish(fallback);
-    },45000);
-    pendingAsks[rid]=finish;
-    netSend('ask',{to:playerId,rid,spec});
-    announceLocal(`Waiting for ${target?target.name:'a player'}…`,false,1400);
-  });
-}
-
-async function handleRemoteAsk(m){
-  const s=m.spec||{};
-  let value;
-  if(s.k==='choose') value=await choosePlayer(s.title,s.text,s.candidates,s.allowSkip);
-  else if(s.k==='yesno') value=await askYesNo(s.title,s.text);
-  else if(s.k==='double') value=await chooseShotToDouble((s.targets||[]).map(id=>({targetId:id})));
-  else return;
-  netSend('answer',{to:m.from,rid:m.rid,value});
-}
-
-// ---------- shared end screen ----------
-
-function showEndScreen(ids,reason){
-  clearSave();
-  const names=(ids||[]).map(id=>getPlayer(id)?.name).filter(Boolean);
-  $('winnerText').innerHTML=`${escapeHtml(names.join(', ')||'No survivor')}<br><span class="small">${escapeHtml(reason||'')}</span>`;
-  $('finalRoles').innerHTML=state.players.map(p=>`<div class="seat-row"><div><b>${escapeHtml(p.name)}</b><div class="small">${escapeHtml(p.character.name)}</div></div><span class="role-pill ${roleClass(p.role)}">${escapeHtml(p.role)}</span></div>`).join('');
-  showScreen('gameOverScreen');
-}
-
-// Tidy up if the host walks away mid-game.
-window.addEventListener('pagehide',()=>{ if(netMode==='host'&&room) netSend('closed',{}); });
-
-setSetupMode('solo');
-
-
-// ==================================================================
-//  SURVIVING A RELOAD, AND THE PHONE'S BACK BUTTON
-// ==================================================================
-
-const SAVE_KEY = 'bangDiceSave';
-const SAVE_MAX_AGE_MS = 6*60*60*1000;      // six hours
-let saveTimer = null;
-
-function saveSoon(){ clearTimeout(saveTimer); saveTimer=setTimeout(saveNow,400); }
-function saveNow(){
-  clearTimeout(saveTimer);
-  if(!state||!state.players||!state.players.length||state.gameOver){ return; }
-  try{
-    localStorage.setItem(SAVE_KEY, JSON.stringify({
-      at:Date.now(), netMode, MY_ID, mySeat, myRole, room, state
-    }));
-  }catch(e){ /* private mode, quota, whatever — the game still plays */ }
-}
-function clearSave(){ clearTimeout(saveTimer); try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
-function readSave(){
-  try{
-    const raw=localStorage.getItem(SAVE_KEY);
-    if(!raw) return null;
-    const save=JSON.parse(raw);
-    if(!save||!save.state||!save.state.players||!save.state.players.length) return null;
-    if(Date.now()-save.at > SAVE_MAX_AGE_MS) return null;
-    if(save.state.gameOver) return null;
-    return save;
-  }catch(e){ return null; }
-}
-
-function offerResume(){
-  const save=readSave();
-  if(!save){ $('resumeBar').style.display='none'; return; }
-  const mins=Math.max(1,Math.round((Date.now()-save.at)/60000));
-  const where=save.netMode==='solo'?'solo game':(save.netMode==='host'?`online table ${save.room?save.room.code:''}`:`online table ${save.room?save.room.code:''}`);
-  const turn=save.state.players[save.state.turnIndex];
-  $('resumeText').textContent=`You have a ${where} still going from ${mins} minute${mins===1?'':'s'} ago — ${turn?turn.name+"'s turn":'in progress'}.`;
-  $('resumeBar').style.display='block';
-}
-
-$('discardBtn').addEventListener('click',()=>{ clearSave(); $('resumeBar').style.display='none'; });
-$('resumeBtn').addEventListener('click',()=>resumeGame());
-
-async function resumeGame(){
-  const save=readSave();
-  if(!save){ $('resumeBar').style.display='none'; return; }
-  $('resumeBtn').disabled=true;
-
-  netMode=save.netMode||'solo';
-  MY_ID=save.MY_ID||'p0';
-  mySeat=save.mySeat||0;
-  myRole=save.myRole||null;
-  room=save.room||null;
-  state=save.state;
-  if(!state.seats) state.seats=[];
-  if(typeof state.turnStarted!=='boolean') state.turnStarted=true;
-
-  // A turn that was halfway through resolving cannot be picked back up
-  // safely, so that turn is abandoned and play moves on.
-  const wasResolving=state.resolving;
-  state.resolving=false;
-
-  try{
-    if(isOnline() && room && supabaseReady()){
-      await openChannel(room.code);
-      if(netMode==='guest'){
-        // Our seat row is still in the table; ask the host for the live board.
-        netSend('resync',{});
-      }
-    } else if(isOnline()){
-      netMode='solo';   // no backend reachable, finish the table against bots
-    }
-  }catch(e){
-    console.warn('could not rejoin the room',e);
-    lobbyNote&&lobbyNote('');
-    netMode='solo';
-  }
-
-  $('resumeBar').style.display='none';
-  $('resumeBtn').disabled=false;
-  showScreen('gameScreen');
-  renderGame();
-
-  if(isHost()){
-    pushStateNow&&pushStateNow();
-    await sleep(500);
-    if(wasResolving){
-      await announce('Picking the game back up.',false,ACTION_MESSAGE_MS);
-      nextTurn();
-    } else {
-      const p=currentPlayer();
-      if(p&&p.isBot&&p.alive) startTurn();
-      else if(p&&!p.alive) nextTurn();
-    }
-  }
-}
-
-// ---------- the phone's back button ----------
-// Every screen change pushes a history entry, so Android's back gesture walks
-// the game instead of closing it. Back first shuts an open panel, and it never
-// drops you out of a live table without asking.
-
-function anyModalOpen(){
-  return $('choiceBackdrop').classList.contains('show') || $('infoBackdrop').classList.contains('show');
-}
-function closeAnyModal(){
-  $('infoBackdrop').classList.remove('show');
-  // A choice modal is the engine waiting on an answer, so it stays put.
-  return !$('choiceBackdrop').classList.contains('show');
-}
-function currentScreen(){
-  return screens.find(id=>$(id).classList.contains('active'))||'setupScreen';
-}
-function repushCurrent(){
-  try{ history.pushState({screen:currentScreen()},''); }catch(e){}
-}
-
-window.addEventListener('popstate',async ev=>{
-  const here=currentScreen();
-
-  // 1. an open panel closes first
-  if(anyModalOpen()){
-    closeAnyModal();
-    repushCurrent();
-    return;
-  }
-
-  // 2. never fall out of a live table by accident
-  if(here==='gameScreen' && state && !state.gameOver){
-    const leave=window.confirm('Leave the table? Your game is saved, so you can resume it from the front page.');
-    if(!leave){ repushCurrent(); return; }
-    saveNow();
-    await leaveRoom();
-    navReplaying=true; showScreen('setupScreen'); navReplaying=false;
-    repushCurrent();
-    offerResume();
-    return;
-  }
-
-  // 3. otherwise walk back a screen
-  const target=(ev.state&&ev.state.screen)||'setupScreen';
-  navReplaying=true;
-  if(target==='gameScreen'&&(!state||!state.players.length)) showScreen('setupScreen');
-  else showScreen(target);
-  navReplaying=false;
-  if(currentScreen()==='setupScreen') offerResume();
-});
-
-try{ history.replaceState({screen:'setupScreen'},''); }catch(e){}
-
-// A reload while a game is live is almost always an accident.
-window.addEventListener('beforeunload',ev=>{
-  if(state && state.players && state.players.length && !state.gameOver){
-    saveNow();
-    ev.preventDefault();
-    ev.returnValue='';
-    return '';
-  }
-});
-
-offerResume();
 
 })();
 </script>
