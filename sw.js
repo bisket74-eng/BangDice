@@ -1,5 +1,5 @@
 // BANG! Dice — offline service worker
-const CACHE = 'bang-dice-v2';
+const CACHE = 'bang-dice-v5';
 const ASSETS = [
   './',
   './index.html',
